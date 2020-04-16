@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404
 import  logging
 from .utils import  LOGGING
 from rest_framework.permissions import AllowAny
+from rest_framework.decorators import api_view
 
 logging.config.dictConfig(LOGGING)
 
@@ -134,3 +135,8 @@ class UserDetail(APIView):
             return Response({"result": "success"})
         
         return Response({"result": False, "message":"user not found"})
+
+
+@api_view(['GET'])
+def api(request):
+    return Response({"result": True})

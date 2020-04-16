@@ -7,8 +7,8 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
-from .serializer import  UserSerializer
-from .models import  User
+# from .serializer import  UserSerializer
+# from .models import  User
 from django.shortcuts import get_object_or_404
 import  logging
 from .utils import  LOGGING
@@ -47,26 +47,25 @@ def user_operations(pk, delete=False):
                 return user
         return False
     else:
-        for user  in users:
-            if user["id"] ==pk:
-                print(user)
-                del user["first_name"]
-                del user["last_name"]
-                del user["user_name"]
-                del user["id"]
-                users.remove({})
 
-                return True
+        for index, value  in enumerate(users):
+            if value.get("id") == pk:
+                del users[index]
+
+
+            return True
 
         return False
 #updateting user information
 def update_user(data,pk):
     global users
-    for user in users:
-        if user["id"] ==pk:
 
-            user.update({"first_name":data.get("first_name"),"last_name":data.get("last_name"),
-            "user_name":data.get("user_name")})
+   
+    for index,value in enumerate(users):
+        if value.get("id") == pk:
+            value.update(data)
+            users[index] = value     
+            
             return True
     return False
 

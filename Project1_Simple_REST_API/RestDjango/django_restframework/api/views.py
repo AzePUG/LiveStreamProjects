@@ -27,10 +27,8 @@ id = 0 # id for each user
 #using global key word to keep data not only inside func
 def add_user(data):
     global id
-    print(id)
 
     data["id"]=id
-    print(data)
     users.append(data)
         
     id += 1
@@ -40,7 +38,6 @@ print(users)
 
 
 def user_operations(pk, delete=False):
-    global users 
     if not delete:
         for user  in users:
             if user["id"] ==pk:

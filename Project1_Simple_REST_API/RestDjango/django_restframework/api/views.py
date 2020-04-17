@@ -26,7 +26,6 @@ id = 0 # id for each user
 
 #using global key word to keep data not only inside func
 def add_user(data):
-    global users
     global id
     print(id)
 
@@ -59,7 +58,6 @@ def user_operations(pk, delete=False):
         return False
 #updateting user information
 def update_user(data,pk):
-    global users
 
    
     for index,value in enumerate(users):

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"golang_restful_api/controllers"
 	"golang_restful_api/models"
 	"log"
@@ -9,19 +10,33 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/nicholasjackson/env"
 )
 
-var bindAddress = env.String("BIND_ADDRESS", false, ":9090", "Bind address for the server")
+// var bindAddress = env.String("BIND_ADDRESS", false, ":9090", "Bind address for the server")
 
 func main() {
-	env.Parse()
+	// env.Parse()
+	boolPtr := flag.Bool("prod", false, "Provide this flag in production. "+
+		"This ensures that a .config file is provided before the application start.")
+	flag.Parse()
+
+	cfg := LoadConfig(*boolPtr)
+	dbCfg := cfg.Database
+	services, err := models.NewServices(
+		models.WithGorm(dbCfg.Dialect(), dbCfg.ConnectionInfo()),
+		models.WithUser(cfg.Pepper))
+	must(err)
+
+	defer services.Close()
+	//services.DestructiveReset()
+	//services.AutoMigrate()
 
 	l := log.New(os.Stdout, "users-api -> ", log.LstdFlags)
 	v := models.NewValidation()
+	us := services.User
 
 	// create the user handler/conroller
-	ah := controllers.NewUsers(l, v)
+	ah := controllers.NewUsers(l, v, us)
 
 	// Create new serve mux and register handlers
 	r := mux.NewRouter()
@@ -45,7 +60,7 @@ func main() {
 
 	// create a new server
 	s := http.Server{
-		Addr:         *bindAddress,      // configure the bind address
+		Addr:         cfg.Port,          // configure the bind address
 		Handler:      r,                 // set the default handler
 		ErrorLog:     l,                 // set the logger for the server
 		ReadTimeout:  5 * time.Second,   // max time to read request from the client
@@ -53,9 +68,18 @@ func main() {
 		IdleTimeout:  120 * time.Second, // max time for connections using TCP Keep-Alive
 	}
 
-	l.Println("Starting server on port 9090")
-	s.ListenAndServe()
+	l.Printf("Starting server on port %s", cfg.Port)
+	err = s.ListenAndServe()
+	if err != nil {
+		l.Println("Unable to start HTTP server", err)
+	}
 
+}
+
+func must(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
 
 // func createUserHandler(w http.ResponseWriter, r *http.Request) {

@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // "github.com/jinzhu/gorm"
@@ -16,7 +17,6 @@ import (
 // User will hold the user details
 type User struct {
 	gorm.Model
-	ID           uint   `json:"id" gorm:"primary_key"`
 	FirstName    string `json:"first_name" validate:"required" gorm:"not null"`
 	LastName     string `json:"last_name" validate:"required" gorm:"not null"`
 	UserName     string `json:"user_name" validate:"required" gorm:"not null"`
@@ -25,9 +25,10 @@ type User struct {
 	PasswordHash string `gorm:"not null;unique_index"`
 }
 
-// UserDB interface for holding all database related actions
+// UserDB interface for holding all direct database related actions
 type UserDB interface {
-	// Methods for querying single user
+	// Methods for querying users
+	GetUsers() ([]*User, error)
 	GetUserByID(id uint) (*User, error)
 	GetUserByEmail(email string) (*User, error)
 
@@ -37,9 +38,16 @@ type UserDB interface {
 	DeleteUser(id uint) error
 }
 
+// UserDBExtra an extra actions as wrappers etc.
+type UserDBExtra interface {
+	// this will be type of userService
+	CreateUser(acc *User) error
+}
+
 // UserService ...
 type UserService interface {
 	UserDB
+	UserDBExtra
 }
 
 // NewUserService creating user service here
@@ -75,6 +83,12 @@ func first(db *gorm.DB, dst interface{}) error {
 	return err
 }
 
+func (ug *userGorm) GetUsers() ([]*User, error) {
+	var user []*User
+	err := ug.db.Find(&user).Error
+	return user, err
+}
+
 // GetUserByEmail Looks up a user with given email address.
 // returns that user.
 func (ug *userGorm) GetUserByEmail(email string) (*User, error) {
@@ -100,10 +114,36 @@ func (ug *userGorm) UpdateUser(user *User) error {
 	return ug.db.Save(user).Error
 }
 
+// bcryptPassword will hash a user's password with a predefined
+// pepper (userPwPepper) and bcrypt if the
+// Password is not the empty string
+func (us *userService) bcryptPassword(user *User) error {
+	if user.Password == "" {
+		return nil
+	}
+	pwBytes := []byte(user.Password + us.pepper)
+	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	user.PasswordHash = string(hashedBytes)
+	user.Password = ""
+	return nil
+}
+
 // Create will create provided user and backfill data
 // like the ID, CreatedAt etc.
 func (ug *userGorm) AddUser(user *User) error {
 	return ug.db.Create(user).Error
+}
+
+// CreateUser hash password and then create database
+func (us *userService) CreateUser(user *User) error {
+	err := us.bcryptPassword(user)
+	if err != nil {
+		return err
+	}
+	return us.AddUser(user)
 }
 
 // Delete the user with provided ID

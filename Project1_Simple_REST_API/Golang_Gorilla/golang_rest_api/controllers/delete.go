@@ -12,8 +12,8 @@ func (a *Users) Delete(w http.ResponseWriter, r *http.Request) {
 
 	a.l.Println("[DEBUG] deleting record id", id)
 
-	err := models.DeleteUser(id)
-	if err == models.ErrUserNotFound {
+	err := a.us.DeleteUser(id)
+	if err == models.ErrNotFound {
 		a.l.Println("[ERROR] deleting record id does not exist")
 
 		w.WriteHeader(http.StatusNotFound)

@@ -4,8 +4,8 @@ services:
     image: postgres
     container_name: live_stream_pg
     restart: on-failure
-    expose:
-      - 5432
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_USER=restapi
       - POSTGRES_PASSWORD=12345

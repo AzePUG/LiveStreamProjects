@@ -15,9 +15,9 @@ func (a *Users) Update(w http.ResponseWriter, r *http.Request) {
 	acc.ID = id
 	a.l.Println("[DEBUG] updating user with id", acc.ID)
 
-	err := models.UpdateUser(acc)
+	err := a.us.UpdateUser(acc)
 
-	if err == models.ErrUserNotFound {
+	if err == models.ErrNotFound {
 		a.l.Println("[ERROR] user not found", err)
 
 		w.WriteHeader(http.StatusNotFound)

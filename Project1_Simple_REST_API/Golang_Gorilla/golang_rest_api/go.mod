@@ -10,4 +10,5 @@ require (
 	github.com/jinzhu/gorm v1.9.12
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/nicholasjackson/env v0.6.0
+	golang.org/x/crypto v0.0.0-20200420201142-3c4aac89819a
 )

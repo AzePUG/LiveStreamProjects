@@ -1,5 +1,6 @@
 from flask import Flask
 import os, logging,sys
+from extensions.extension import db,ma,migrate
 from logging.config import dictConfig
 
 
@@ -33,10 +34,12 @@ def get_settings(settings_name):
 
 def create_app(settings_name):
     app = Flask(__name__)
-    handler = logging.StreamHandler(sys.stdout)
     settings_obj = get_settings(settings_name)
     app.config.from_object(settings_obj)
+    handler = logging.StreamHandler(sys.stdout)
     app.logger.addHandler(handler)
-
+    db.init_app(app)
+    ma.init_app(app)
+    migrate.init_app(app,db)
 
     return app

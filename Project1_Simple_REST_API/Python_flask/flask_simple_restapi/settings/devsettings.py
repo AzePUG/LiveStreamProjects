@@ -4,4 +4,3 @@ import os
 class DevelopSettings(BaseSettings):
     
     DEBUG=True
-    ENV="development"

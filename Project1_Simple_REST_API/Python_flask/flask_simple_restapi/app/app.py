@@ -1,7 +1,7 @@
 from app_init.app_factory import create_app
 from flask import jsonify,current_app,request
 from app.models import Users
-from app.serializer import UserSchema,UpdateSchema,UsersSchema
+from app.serializer import UserSchema,UpdateSchema
 import os
 import warnings
 from marshmallow import ValidationError

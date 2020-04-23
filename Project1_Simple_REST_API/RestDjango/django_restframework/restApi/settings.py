@@ -24,7 +24,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 Securty key designed for PasswordResetView tokens,  usage of cryptographic signing, unless a different key is provided. There are many things in a Django app which require a cryptographic signature, and the ‘SECRET_KEY’ setting is the key used for those.
 '''
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '$2t!11nw4*dvhcuhc3b=)6-@-m$r$^9r9s9^_arq(m3-p4^c_='
+
+SECRET_KEY = os.getenv("KEY")
+print(SECRET_KEY)
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+ALLOWED_HOSTS = ["*"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -129,12 +135,27 @@ MySQL
 Oracle
 SQLite
 '''
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+if DEBUG:
+    
+    DATABASES = {
+        
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }}
+
+#PROD DB
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': os.environ.get('DB_NAME'),
+            'USER': os.environ.get('DB_USER'),
+            'PASSWORD': os.environ.get('DB_PASS'),
+            'HOST': os.environ.get('HOST'),
+            'PORT': '5432',
+        }
     }
-}
 
 
 # Password validation
@@ -178,8 +199,11 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 
+LOG_LEVEL = 'ERROR' if DEBUG else 'DEBUG'
+
 LOGGING = {
     'version': 1,
+    'disable_existing_loggers': not DEBUG,
     'formatters': {
         'standard': {
             'format': '%(asctime)s [%(levelname)s] %(name)s:=> %(message)s',

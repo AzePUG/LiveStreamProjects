@@ -18,13 +18,13 @@ func (a *Users) ListAll(w http.ResponseWriter, r *http.Request) {
 		a.l.Println("[ERROR] fetching user", err)
 
 		w.WriteHeader(http.StatusNotFound)
-		models.ToJSON(&GenericError{Message: err.Error()}, w)
+		utils.Respond(w, &GenericError{Message: err.Error()})
 		return
 	default:
 		a.l.Println("[ERROR] fetching user", err)
 
 		w.WriteHeader(http.StatusInternalServerError)
-		models.ToJSON(&GenericError{Message: err.Error()}, w)
+		utils.Respond(w, &GenericError{Message: err.Error()})
 		return
 	}
 	//err := models.ToJSON(accs, w)
@@ -51,13 +51,13 @@ func (a *Users) ListSingle(w http.ResponseWriter, r *http.Request) {
 		a.l.Println("[ERROR] fetching user", err)
 
 		w.WriteHeader(http.StatusNotFound)
-		models.ToJSON(&GenericError{Message: err.Error()}, w)
+		utils.Respond(w, &GenericError{Message: err.Error()})
 		return
 	default:
 		a.l.Println("[ERROR] fetching user", err)
 
 		w.WriteHeader(http.StatusInternalServerError)
-		models.ToJSON(&GenericError{Message: err.Error()}, w)
+		utils.Respond(w, &GenericError{Message: err.Error()})
 		return
 	}
 

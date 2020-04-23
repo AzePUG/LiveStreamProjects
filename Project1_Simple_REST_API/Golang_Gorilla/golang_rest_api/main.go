@@ -59,6 +59,7 @@ func main() {
 	deleteR.HandleFunc("/users/{id:[0-9]+}", ah.Delete)
 
 	// create a new server
+	l.Println(cfg.Port)
 	s := http.Server{
 		Addr:         cfg.Port,          // configure the bind address
 		Handler:      r,                 // set the default handler

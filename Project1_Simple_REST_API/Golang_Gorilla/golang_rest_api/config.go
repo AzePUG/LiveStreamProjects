@@ -63,7 +63,7 @@ func (c Config) IsProd() bool {
 // DefaultConfig for project level config
 func DefaultConfig() Config {
 	return Config{
-		Port:     "9090",
+		Port:     ":9090",
 		Env:      "dev",
 		Pepper:   "secret-random-string",
 		Database: DefaultsPostgresConfig(),

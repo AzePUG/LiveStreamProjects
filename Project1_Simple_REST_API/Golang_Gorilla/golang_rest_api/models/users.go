@@ -17,11 +17,11 @@ import (
 // User will hold the user details
 type User struct {
 	gorm.Model
-	FirstName    string `json:"first_name" validate:"required" gorm:"not null"`
-	LastName     string `json:"last_name" validate:"required" gorm:"not null"`
-	UserName     string `json:"user_name" validate:"required" gorm:"not null"`
-	Email        string `json:"email" gorm:"not null;unique_index"`
-	Password     string `json:"password" gorm:"-"`
+	FirstName    string `json:"first_name" validate:"required,min=3,max=15" gorm:"not null"`
+	LastName     string `json:"last_name" validate:"required,min=3,max=20" gorm:"not null"`
+	UserName     string `json:"user_name" validate:"required,min=3,max=10" gorm:"not null"`
+	Email        string `json:"email" validate:"required,email" gorm:"not null;unique_index"`
+	Password     string `json:"password" validate:"required,min=5,max=15" gorm:"-"`
 	PasswordHash string `gorm:"not null;unique_index"`
 }
 
@@ -148,85 +148,11 @@ func (us *userService) CreateUser(user *User) error {
 
 // Delete the user with provided ID
 func (ug *userGorm) DeleteUser(id uint) error {
-	user := User{Model: gorm.Model{ID: id}}
-	return ug.db.Delete(&user).Error
+	user, err := ug.GetUserByID(id)
+	if err != nil {
+		return err
+	}
+	// user := User{Model: gorm.Model{ID: id}}
+	ug.db.Delete(&user)
+	return nil
 }
-
-// TODO: change the methods below to use database
-
-// // Users for list of User objects
-// type Users []*User
-//
-// var userList = []*User{&User{}}
-
-// TODO: do we need it????
-//
-// // GetUsers function to get the reference for list of users
-// func GetUsers() Users {
-// 	return userList
-// }
-//
-// func findIndexByUserID(id int) int {
-// 	for i, acc := range userList {
-// 		if acc.ID == id {
-// 			// If the the given id found then return the index of array
-// 			return i
-// 		}
-// 	}
-// 	// Otherwise return -1
-// 	return -1
-// }
-//
-// // GetUserByID returns a single user which matches the id from the
-// // array/list/slice of users
-// // If there is not such user with given id return ErrUserNotFound
-// func GetUserByID(id int) (*User, error) {
-// 	i := findIndexByUserID(id)
-// 	if i == -1 {
-// 		return nil, ErrUserNotFound
-// 	}
-// 	return userList[i], nil
-// }
-//
-// // UpdateUser replaces a user in the database with the given
-// // item. Will update whole object
-// // If a user with the given id does not exist in the database
-// // this function returns a ErrUserNotFound error
-// func UpdateUser(acc *User) error {
-// 	i := findIndexByUserID(acc.ID)
-// 	if i == -1 {
-// 		return ErrUserNotFound
-// 	}
-// 	// update the user in the DB/array/list
-// 	userList[i] = acc
-//
-// 	return nil
-// }
-//
-// // AddUser adds a new user to the database
-// func AddUser(acc *User) {
-// 	// get the next id in sequence
-// 	// implement autoincrement
-// 	maxID := userList[len(userList)-1].ID
-// 	acc.ID = maxID + 1
-// 	userList = append(userList, acc)
-// }
-//
-// // DeleteUser deletes an user from the database/list/array/slice
-// func DeleteUser(id int) error {
-// 	i := findIndexByUserID(id)
-// 	if i == -1 {
-// 		return ErrUserNotFound
-// 	}
-//
-// 	// Remove the element at index i from a.
-// 	userList[i] = userList[len(userList)-1] // Copy last element to index i.
-// 	userList[len(userList)-1] = &User{}     // Erase last element (write zero value).
-// 	userList = userList[:len(userList)-1]   // Truncate slice.
-//
-// 	// log.Println(userList[:i])
-// 	// log.Println(userList[i+1])
-// 	// userList = append(userList[:i], userList[i+1])
-//
-// 	return nil
-// }

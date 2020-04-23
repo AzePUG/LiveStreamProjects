@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"golang_restful_api/models"
+	"golang_restful_api/utils"
 	"net/http"
 )
 
@@ -13,7 +14,7 @@ func (a *Users) Create(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		a.l.Println("[ERROR] Something went wrong with user creation", err)
 		w.WriteHeader(http.StatusBadRequest)
-		models.ToJSON(&GenericError{Message: "Something went wrong with user creation"}, w)
+		utils.Respond(w, &GenericError{Message: "Something went wrong with user creation"})
 		return
 	}
 	w.WriteHeader(http.StatusCreated)

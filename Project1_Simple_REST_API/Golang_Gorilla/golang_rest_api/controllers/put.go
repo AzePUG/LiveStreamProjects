@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"golang_restful_api/models"
+	"golang_restful_api/utils"
 	"net/http"
 )
 
@@ -21,7 +22,7 @@ func (a *Users) Update(w http.ResponseWriter, r *http.Request) {
 		a.l.Println("[ERROR] user not found", err)
 
 		w.WriteHeader(http.StatusNotFound)
-		models.ToJSON(&GenericError{Message: "User not found in database"}, w)
+		utils.Respond(w, &GenericError{Message: "User not found in database"})
 		return
 	}
 

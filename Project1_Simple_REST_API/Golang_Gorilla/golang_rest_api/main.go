@@ -12,8 +12,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// var bindAddress = env.String("BIND_ADDRESS", false, ":9090", "Bind address for the server")
-
 func main() {
 	// env.Parse()
 	boolPtr := flag.Bool("prod", false, "Provide this flag in production. "+
@@ -82,45 +80,3 @@ func must(err error) {
 		panic(err)
 	}
 }
-
-// func createUserHandler(w http.ResponseWriter, r *http.Request) {
-// 	log.Print("Request received to create an User")
-//
-// 	var user User
-// 	json.NewDecoder(r.Body).Decode(&user)
-// 	id := string(user.ID)
-// 	userMap[id] = user
-// 	log.Print("Successfully created the User ", user)
-//
-// 	w.Header().Add("Content-Type", "application/json")
-// 	w.WriteHeader(http.StatusCreated)
-//
-// 	json.NewEncoder(w).Encode(user)
-// }
-//
-// func getUserHandler(w http.ResponseWriter, r *http.Request) {
-// 	params := mux.Vars(r)
-// 	id, _ := params["id"]
-//
-// 	log.Print("Request received to get an user by user id: ", id)
-// 	user, key := userMap[id]
-//
-// 	w.Header().Add("Content-Type", "application/json")
-//
-// 	if key {
-// 		log.Println("Successfully retrieved the user ", user, " for user id: ", id)
-// 		log.Println(userMap)
-// 		w.WriteHeader(http.StatusOK)
-// 		json.NewEncoder(w).Encode(user)
-// 	} else {
-// 		log.Println("Requested user is not found for user id: ", id)
-// 		log.Println(userMap)
-// 		w.WriteHeader(http.StatusNotFound)
-// 		json.NewEncoder(w)
-// 	}
-// }
-//
-// func deleteUserHandler(w http.ResponseWriter, r *http.Request) {
-// 	log.Print("Request received to delete an User by user id")
-// 	//add your own flavor to this function :)
-// }

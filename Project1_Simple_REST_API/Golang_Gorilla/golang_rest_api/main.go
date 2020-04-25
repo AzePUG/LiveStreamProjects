@@ -38,6 +38,7 @@ func main() {
 
 	// Create new serve mux and register handlers
 	r := mux.NewRouter()
+	r.Use(controllers.CommonMiddleware)
 	var apiV1 = r.PathPrefix("/api/v1/").Subrouter()
 
 	// Routes for api

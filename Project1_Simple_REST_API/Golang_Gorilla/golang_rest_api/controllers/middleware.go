@@ -8,6 +8,14 @@ import (
 	"golang_restful_api/utils"
 )
 
+// CommonMiddleware for updating default content type for our router
+func CommonMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		next.ServeHTTP(w, r)
+	})
+}
+
 // MiddlewareValidateUser validates the user in the request and calls next if ok
 func (a *Users) MiddlewareValidateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

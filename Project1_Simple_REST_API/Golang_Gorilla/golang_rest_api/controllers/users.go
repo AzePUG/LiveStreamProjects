@@ -30,14 +30,14 @@ func NewUsers(l *log.Logger, v *models.Validation, us models.UserService) *Users
 
 // GenericError is a generic error message returned by a server
 type GenericError struct {
-	Message string `json:"message"`
-	http.ResponseWriter
+	Message             string `json:"message"`
+	http.ResponseWriter `json:"-"`
 }
 
 // ValidationError is a collection of validation error messages
 type ValidationError struct {
-	Messages []string `json:"messages"`
-	http.ResponseWriter
+	Messages            []string `json:"messages"`
+	http.ResponseWriter `json:"-"`
 }
 
 // getUserID returns the user ID from the URL

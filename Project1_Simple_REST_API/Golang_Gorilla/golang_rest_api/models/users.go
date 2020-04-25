@@ -5,15 +5,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// "github.com/jinzhu/gorm"
-//User Json request payload is as follows,
-//{
-//  "id": "1",
-//  "first_name": "james",
-//  "last_name":  "bolt",
-//  "user_name":  "james1234"
-//}
-
 // User will hold the user details
 type User struct {
 	gorm.Model
@@ -22,7 +13,7 @@ type User struct {
 	UserName     string `json:"user_name" validate:"required,min=3,max=10" gorm:"not null"`
 	Email        string `json:"email" validate:"required,email" gorm:"not null;unique_index"`
 	Password     string `json:"password" validate:"required,min=5,max=15" gorm:"-"`
-	PasswordHash string `gorm:"not null;unique_index"`
+	PasswordHash string `json:"-" gorm:"not null;unique_index"`
 }
 
 // UserDB interface for holding all direct database related actions

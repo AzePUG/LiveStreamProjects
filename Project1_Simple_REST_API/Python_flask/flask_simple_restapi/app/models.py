@@ -1,5 +1,6 @@
-from extensions.extension import Model,String,Integer,Column
+from extensions.extension import Model,String,Integer,Column,DateTime
 from extensions.extension import db
+from sqlalchemy.sql import func
 
 
 class Users(Model):
@@ -11,6 +12,8 @@ class Users(Model):
     user_name = Column(String(),nullable=False)
     email = Column(String(),nullable=False)
     password = Column(String(),nullable=False)
+    created = Column(DateTime(timezone=True), default=func.now())
+    updated = Column(DateTime(timezone=True), onupdate=func.now(),nullable=True)
 
     def save_db(self):
         db.session.add(self)

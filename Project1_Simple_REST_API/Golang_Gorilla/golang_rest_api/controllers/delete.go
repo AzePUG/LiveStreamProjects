@@ -12,13 +12,12 @@ func (a *Users) Delete(w http.ResponseWriter, r *http.Request) {
 
 	a.l.Println("[DEBUG] deleting record id", id)
 
-	err := models.DeleteUser(id)
-	if err == models.ErrUserNotFound {
+	err := a.us.DeleteUser(id)
+	if err == models.ErrNotFound {
 		a.l.Println("[ERROR] deleting record id does not exist")
 
 		w.WriteHeader(http.StatusNotFound)
-		//models.ToJSON(&GenericError{Message: err.Error()}, w)
-		utils.Respond(&GenericError{Message: err.Error()}, w)
+		utils.Respond(w, &GenericError{Message: err.Error()})
 		return
 	}
 
@@ -26,7 +25,7 @@ func (a *Users) Delete(w http.ResponseWriter, r *http.Request) {
 		a.l.Println("[ERROR] deleting record", err)
 
 		w.WriteHeader(http.StatusInternalServerError)
-		models.ToJSON(&GenericError{Message: err.Error()}, w)
+		utils.Respond(w, &GenericError{Message: err.Error()})
 		return
 	}
 

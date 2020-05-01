@@ -7,63 +7,22 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
-# from .serializer import  UserSerializer
 # from .models import  User
 from django.shortcuts import get_object_or_404
 import  logging
 from .utils import  LOGGING
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view
+from .serializer import  UserSerializer,UserSerializerDetails
+from django.shortcuts import get_object_or_404
 
 logging.config.dictConfig(LOGGING)
 
+from django.contrib.auth import get_user_model
 
 
+User = get_user_model()
 
-#massiv
-users = []
-id = 0 # id for each user
-
-#using global key word to keep data not only inside func
-def add_user(data):
-    global id
-
-    data["id"]=id
-    users.append(data)
-        
-    id += 1
-    print(id)
-
-print(users)
-
-
-def user_operations(pk, delete=False):
-    if not delete:
-        for user  in users:
-            if user["id"] ==pk:
-                return user
-        return False
-    else:
-
-        for index, value  in enumerate(users):
-            if value.get("id") == pk:
-                del users[index]
-
-
-            return True
-
-        return False
-#updateting user information
-def update_user(data,pk):
-
-   
-    for index,value in enumerate(users):
-        if value.get("id") == pk:
-            value.update(data)
-            users[index] = value     
-            
-            return True
-    return False
 
 
 #this endpoint will create user by using post method
@@ -72,14 +31,19 @@ class CreateUser(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        if not (request.data.get("first_name") and request.data.get("last_name") and request.data.get("user_name")):
-            return Response({"result":False,"message":"User cannot be created"})
 
-        add_user(request.data)   
+        serializer = UserSerializer(data=request.data)
 
-        logging.info(f"New user Created")
+        if serializer.is_valid():
 
-        return Response({"user":f"user with username {request.data.get('user_name')} created"}, status=201)
+            serializer.save()
+            logging.info(f"New user Created")
+
+            data = dict(serializer.data)
+            data.pop("password")
+            return Response(data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 #this returns all users from the list
@@ -87,9 +51,12 @@ class UserList(APIView):
     permission_classes = [AllowAny] #allowing anyone to make request
 
     def get(self, request):
-
-        return Response(users)
-
+        
+        user_list =   User.objects.all()[:20]
+        
+        data = UserSerializerDetails(user_list, many=True).data
+                
+        return Response(data)
 
 
 #this enpoint has 3 methods either you can get user, delete, and update the user information
@@ -98,40 +65,42 @@ class UserDetail(APIView):
 
 
     def get(self, request, pk):
+        
 
-        user = user_operations(pk)
-
-        if user:
-            return Response(user)
-
-        return Response({"result":False, "message": "no user found"})
+        user_data = get_object_or_404(User, pk=pk)
+        print(user_data)
+        data = UserSerializerDetails(user_data).data
+        return Response(data)
 
     def put(self, request, pk):
 
-        if not (request.data.get("first_name") and request.data.get("last_name") and request.data.get("user_name")):
-            return Response({"result":False,"message":"User cannot be created"})
+        # existing_user = get_object_or_404(User, pk=pk)
+        existing_user = User.objects.filter(id=pk).first()
 
-        up = update_user(request.data,pk)
-        if up:
-            logging.info(f"User updated")
+        if not existing_user:
+            return Response({"result": False,"message": "No account found"}, status=status.HTTP_404_NOT_FOUND)
 
-            return Response({"user":"updated"})
+        serializer = UserSerializer(instance=existing_user, data=request.data, partial=True)
 
-        return Response({"result":False, "message": "no user found"})
+        if serializer.is_valid(raise_exception=True):
+
+            serializer.save()
+            data = dict(serializer.data)
+            data.pop("password")
+            
+            return Response(data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
 
     def delete(self, request, pk):
 
-        user = user_operations(pk,delete=True)
-
-        if user:
-            logging.info(f"User deleted")
-
-            return Response({"result": "success"})
+        user = get_object_or_404(User, pk=pk)
         
-        return Response({"result": False, "message":"user not found"})
+        user.delete()
+        
+        logging.info(f"User deleted")
 
+        return Response({"message": f"User with username {user.username} has been deleted"},status=status.HTTP_200_OK)
 
-@api_view(['GET'])
-def api(request):
-    return Response({"result": True})
+       

@@ -26,7 +26,14 @@ func WithUser(pepper string) ServicesConfig {
 		s.User = NewUserService(s.db, pepper)
 		return nil
 	}
+}
 
+// WithTodo function for activating TodoService
+func WithTodo() ServicesConfig {
+	return func(s *Services) error {
+		s.Todo = NewTodoService(s.db)
+		return nil
+	}
 }
 
 // NewServices will loop through all passed services
@@ -45,6 +52,7 @@ func NewServices(cfgs ...ServicesConfig) (*Services, error) {
 // there
 type Services struct {
 	User UserService
+	Todo TodoService
 	db   *gorm.DB
 }
 
@@ -56,7 +64,7 @@ func (s *Services) Close() error {
 // DestructiveReset drops all tables and rebuilds them
 // FOR DEVELOPMENT
 func (s *Services) DestructiveReset() error {
-	err := s.db.DropTableIfExists(&User{}).Error
+	err := s.db.DropTableIfExists(&User{}, &Todo{}).Error
 	if err != nil {
 		return err
 	}
@@ -65,5 +73,5 @@ func (s *Services) DestructiveReset() error {
 
 // AutoMigrate will attempt automatically migrate all tables
 func (s *Services) AutoMigrate() error {
-	return s.db.AutoMigrate(&User{}).Error
+	return s.db.AutoMigrate(&User{}, &Todo{}).Error
 }

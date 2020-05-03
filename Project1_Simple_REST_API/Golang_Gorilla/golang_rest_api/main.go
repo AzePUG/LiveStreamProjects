@@ -22,7 +22,8 @@ func main() {
 	dbCfg := cfg.Database
 	services, err := models.NewServices(
 		models.WithGorm(dbCfg.Dialect(), dbCfg.ConnectionInfo()),
-		models.WithUser(cfg.Pepper))
+		models.WithUser(cfg.Pepper),
+		models.WithTodo())
 	must(err)
 
 	defer services.Close()

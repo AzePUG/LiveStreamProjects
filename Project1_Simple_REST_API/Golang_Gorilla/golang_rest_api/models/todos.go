@@ -13,7 +13,7 @@ type Todo struct {
 
 type TodoDB interface {
 	// Methods for querying todos
-	GetTodos() ([]*Todo, error)
+	GetTodos(user *User) ([]*Todo, error)
 	GetTodoByID(id uint) (*Todo, error)
 
 	// Methods for altering the todos
@@ -46,10 +46,12 @@ type todoGorm struct {
 	db *gorm.DB
 }
 
-func (tg *todoGorm) GetTodos() ([]*Todo, error) {
-	var todo []*Todo
-	err := tg.db.Find(&todo).Error
-	return todo, err
+func (tg *todoGorm) GetTodos(user *User) ([]*Todo, error) {
+	var todos []*Todo
+	var todo *Todo
+	err := tg.db.Model(&user).Related(&todo).Find(&todos).Error
+	// err := tg.db.Find(&todo).Error
+	return todos, err
 }
 
 func (tg *todoGorm) GetTodoByID(id uint) (*Todo, error) {

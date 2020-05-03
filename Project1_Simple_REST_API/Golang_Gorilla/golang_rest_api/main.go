@@ -34,8 +34,12 @@ func main() {
 	v := models.NewValidation()
 	us := services.User
 
-	// create the user handler/conroller
+	l_todo := log.New(os.Stdout, "todos-api -> ", log.LstdFlags)
+	ts := services.Todo
+
+	// create the handler/conrollers
 	ah := controllers.NewUsers(l, v, us)
+	th := controllers.NewTodos(l_todo, v, ts, us)
 
 	// Create new serve mux and register handlers
 	r := mux.NewRouter()
@@ -46,9 +50,11 @@ func main() {
 	getR := apiV1.Methods("GET").Subrouter()
 	getR.HandleFunc("/users", ah.ListAll)
 	getR.HandleFunc("/users/{id:[0-9]+}", ah.ListSingle)
+	getR.HandleFunc("/users/{id:[0-9]+}/todos", th.ListAll)
 
 	postR := apiV1.Methods("POST").Subrouter()
 	postR.HandleFunc("/users", ah.Create)
+	postR.HandleFunc("/users/{id:[0-9]+}/todos", th.Create)
 	postR.Use(ah.MiddlewareValidateUser)
 
 	putR := apiV1.Methods("PUT").Subrouter()

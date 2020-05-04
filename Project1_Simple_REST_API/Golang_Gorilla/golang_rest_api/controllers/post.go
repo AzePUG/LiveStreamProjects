@@ -27,9 +27,9 @@ func (t *Todos) Create(w http.ResponseWriter, r *http.Request) {
 	todo := r.Context().Value(KeyTodo{}).(*models.Todo)
 	err := t.ts.AddTodo(todo)
 	if err != nil {
-		t.l.Println("[ERROR] Something went wrong with user creation", err)
+		t.l.Println("[ERROR] Something went wrong with todo creation", err)
 		w.WriteHeader(http.StatusBadRequest)
-		utils.Respond(w, &GenericError{Message: "Something went wrong with user creation"})
+		utils.Respond(w, &GenericError{Message: "Something went wrong with todo creation"})
 		return
 	}
 	w.WriteHeader(http.StatusCreated)

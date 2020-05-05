@@ -16,6 +16,9 @@ func CommonMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// TODO: make single point validation middleware and call related specific validation from there
+// func MiddlewareValidate(opts ...)
+
 // MiddlewareValidateUser validates the user in the request and calls next if ok
 func (a *Users) MiddlewareValidateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

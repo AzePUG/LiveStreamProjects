@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"fmt"
 	"github.com/gorilla/mux"
 )
 
@@ -54,9 +55,21 @@ func main() {
 
 	postR := apiV1.Methods("POST").Subrouter()
 	postR.HandleFunc("/users", ah.Create)
-	postR.Use(ah.MiddlewareValidateUser)
+	err = r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+		pathTemplate, err := route.GetPathTemplate()
+		if err == nil {
+			fmt.Println("ROUTE:", pathTemplate)
+		}
+		pathRegexp, err := route.GetPathRegexp()
+		if err == nil {
+			fmt.Println("Path regexp:", pathRegexp)
+		}
+		return nil
+	})
+	//postR.Use(ah.MiddlewareValidateUser)
 	postR.HandleFunc("/users/{id:[0-9]+}/todos", th.Create)
-	postR.Use(th.MiddlewareValidateTodo)
+	//postR.Use(th.MiddlewareValidateTodo)
+	postR.Use(controllers.MiddlewareValidate)
 
 	putR := apiV1.Methods("PUT").Subrouter()
 	putR.HandleFunc("/users/{id:[0-9]+}", ah.Update)

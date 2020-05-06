@@ -1,12 +1,14 @@
 package models
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+)
 
 type Todo struct {
 	gorm.Model
 	Title       string `json:"title" validate:"required,min=5,max=20" gorm:"not null"`
 	Description string `json:"description" validate:"required,min=10,max=100" gorm:"not null"`
-	UserID      uint   `json:"-"`
+	UserID      uint   `json:"-" gorm:"not null"`
 }
 
 // TodoDB interface for holding all direct database related actions
@@ -48,9 +50,7 @@ type todoGorm struct {
 
 func (tg *todoGorm) GetTodos(user *User) ([]*Todo, error) {
 	var todos []*Todo
-	var todo *Todo
-	err := tg.db.Model(&user).Related(&todo).Find(&todos).Error
-	// err := tg.db.Find(&todo).Error
+	err := tg.db.Model(&user).Related(&todos).Error
 	return todos, err
 }
 

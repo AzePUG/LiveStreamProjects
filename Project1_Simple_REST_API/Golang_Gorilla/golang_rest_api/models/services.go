@@ -63,15 +63,20 @@ func (s *Services) Close() error {
 
 // DestructiveReset drops all tables and rebuilds them
 // FOR DEVELOPMENT
-func (s *Services) DestructiveReset() error {
+func (s *Services) DestructiveReset() (error, error) {
 	err := s.db.DropTableIfExists(&User{}, &Todo{}).Error
 	if err != nil {
-		return err
+		return err, nil
 	}
-	return s.AutoMigrate()
+	return s.AutoMigrateUser(), s.AutoMigrateTodo()
 }
 
-// AutoMigrate will attempt automatically migrate all tables
-func (s *Services) AutoMigrate() error {
-	return s.db.AutoMigrate(&User{}, &Todo{}).Error
+// // AutoMigrateUser will attempt automatically migrate user table
+func (s *Services) AutoMigrateUser() error {
+	return s.db.AutoMigrate(&User{}).Error
+}
+
+// AutoMigrateTodo will attempt automatically migrate
+func (s *Services) AutoMigrateTodo() error {
+	return s.db.AutoMigrate(Todo{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT").Error
 }

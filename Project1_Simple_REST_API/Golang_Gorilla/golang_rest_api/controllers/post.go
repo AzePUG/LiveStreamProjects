@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"golang_restful_api/models"
 	"golang_restful_api/utils"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 // Create handles POST requests to add new users
 func (a *Users) Create(w http.ResponseWriter, r *http.Request) {
 	// fetch the user from the context
+	fmt.Println("Inside Create")
 	acc := r.Context().Value(KeyUser{}).(*models.User)
 	err := a.us.CreateUser(acc)
 	if err != nil {
@@ -25,6 +27,9 @@ func (a *Users) Create(w http.ResponseWriter, r *http.Request) {
 func (t *Todos) Create(w http.ResponseWriter, r *http.Request) {
 	// fetch the user from the context
 	todo := r.Context().Value(KeyTodo{}).(*models.Todo)
+	fmt.Println(todo)
+	id := getUserID(r)
+	todo.UserID = id
 	err := t.ts.AddTodo(todo)
 	if err != nil {
 		t.l.Println("[ERROR] Something went wrong with todo creation", err)

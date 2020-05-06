@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	"fmt"
 	"github.com/gorilla/mux"
 )
 
@@ -41,6 +40,10 @@ func main() {
 	// create the handler/conrollers
 	ah := controllers.NewUsers(l, v, us)
 	th := controllers.NewTodos(l_todo, v, ts, us)
+	gh := controllers.GenHandler{
+		ah,
+		th,
+	}
 
 	// Create new serve mux and register handlers
 	r := mux.NewRouter()
@@ -55,25 +58,12 @@ func main() {
 
 	postR := apiV1.Methods("POST").Subrouter()
 	postR.HandleFunc("/users", ah.Create)
-	err = r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
-		pathTemplate, err := route.GetPathTemplate()
-		if err == nil {
-			fmt.Println("ROUTE:", pathTemplate)
-		}
-		pathRegexp, err := route.GetPathRegexp()
-		if err == nil {
-			fmt.Println("Path regexp:", pathRegexp)
-		}
-		return nil
-	})
-	//postR.Use(ah.MiddlewareValidateUser)
 	postR.HandleFunc("/users/{id:[0-9]+}/todos", th.Create)
-	//postR.Use(th.MiddlewareValidateTodo)
-	postR.Use(controllers.MiddlewareValidate)
+	postR.Use(gh.MiddlewareValidate)
 
 	putR := apiV1.Methods("PUT").Subrouter()
 	putR.HandleFunc("/users/{id:[0-9]+}", ah.Update)
-	putR.Use(ah.MiddlewareValidateUser)
+	//putR.Use(gh.MiddlewareValidateUser)
 
 	deleteR := apiV1.Methods(http.MethodDelete).Subrouter()
 	deleteR.HandleFunc("/users/{id:[0-9]+}", ah.Delete)

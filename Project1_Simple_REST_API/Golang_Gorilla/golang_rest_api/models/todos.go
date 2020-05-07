@@ -16,12 +16,12 @@ type Todo struct {
 type TodoDB interface {
 	// Methods for querying todos
 	GetTodos(user *User) ([]*Todo, error)
-	GetTodoByID(id uint) (*Todo, error)
+	GetTodoByID(user *User, id uint) (*Todo, error)
 
 	// Methods for altering the todos
-	UpdateTodo(td *Todo) error
+	UpdateTodo(user *User, todo *Todo, id uint) error
 	AddTodo(td *Todo) error
-	DeleteTodo(id uint) error
+	DeleteTodo(user *User, id uint) error
 }
 
 type TodoService interface {
@@ -54,16 +54,23 @@ func (tg *todoGorm) GetTodos(user *User) ([]*Todo, error) {
 	return todos, err
 }
 
-func (tg *todoGorm) GetTodoByID(id uint) (*Todo, error) {
+func (tg *todoGorm) GetTodoByID(user *User, id uint) (*Todo, error) {
 	var todo Todo
-	db := tg.db.Where("id = ?", id)
+	var todos []*Todo
+	db := tg.db.Model(&user).Related(&todos).Where("id = ?", id)
+	//db := tg.db.Where("id = ?", id)
 	err := first(db, &todo)
 	return &todo, err
 }
 
 // Update the record in todo table i.e given new todo model
-func (tg *todoGorm) UpdateTodo(todo *Todo) error {
-	return tg.db.Save(todo).Error
+func (tg *todoGorm) UpdateTodo(user *User, todo *Todo, id uint) error {
+	todos, err := tg.GetTodoByID(user, id)
+	if err != nil {
+		return err
+	}
+	todos = todo
+	return tg.db.Save(todos).Error
 }
 
 // Create will create provided todo and backfill data
@@ -73,8 +80,8 @@ func (tg *todoGorm) AddTodo(todo *Todo) error {
 }
 
 // Delete the user with provided ID
-func (tg *todoGorm) DeleteTodo(id uint) error {
-	todo, err := tg.GetTodoByID(id)
+func (tg *todoGorm) DeleteTodo(user *User, id uint) error {
+	todo, err := tg.GetTodoByID(user, id)
 	if err != nil {
 		return err
 	}

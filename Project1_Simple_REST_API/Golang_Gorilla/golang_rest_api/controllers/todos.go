@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"github.com/gorilla/mux"
 	"golang_restful_api/models"
 	"log"
+	"net/http"
+	"strconv"
 )
 
 // KeyUser is a key used for the Todo object in the context
@@ -25,4 +28,19 @@ func NewTodos(l *log.Logger, v *models.Validation,
 		ts: ts,
 		us: us,
 	}
+}
+
+// Function for getting todos id from url
+func getTodoID(r *http.Request) uint {
+	// parse the user id from the url
+	vars := mux.Vars(r)
+
+	// convert the id into an integer and return
+	tid, err := strconv.Atoi(vars["tid"])
+	if err != nil {
+		// should never happen
+		panic(err)
+	}
+
+	return uint(tid)
 }

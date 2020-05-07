@@ -25,7 +25,9 @@ type GenHandler struct {
 
 var uRLPathRegex = map[string]string{
 	"^/api/v1/users$":                      "users",
+	"^/api/v1/users/(?P<v0>[0-9]+)$":		"users",
 	"^/api/v1/users/(?P<v0>[0-9]+)/todos$": "todos",
+	"^/api/v1/users/(?P<v0>[0-9]+)/todos/(?P<v0>[0-9]+)$": "todos",
 }
 
 // CommonMiddleware for updating default content type for our router
@@ -40,7 +42,6 @@ func CommonMiddleware(next http.Handler) http.Handler {
 func (g *GenHandler) MiddlewareValidate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var getURLPath = r.URL.Path
-		fmt.Println(getURLPath)
 		for patt, val := range uRLPathRegex {
 			match, _ := regexp.MatchString(patt, getURLPath)
 			if match && val == "users" {
@@ -56,13 +57,7 @@ func (g *GenHandler) MiddlewareValidate(next http.Handler) http.Handler {
 
 // MiddlewareValidateUser validates the user in the request and calls next if ok
 func (a *GenHandler) MiddlewareValidateUser(next http.Handler, w http.ResponseWriter, r *http.Request) error {
-	fmt.Println("Inside validator")
-	//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	acc := &models.User{}
-	fmt.Println("Inside middleware 2")
-
-	fmt.Println(r.Body)
-
 	err := models.FromJSON(acc, r.Body)
 	if err != nil {
 		a.Users.l.Println("[ERROR] deserializing user", err)
@@ -94,11 +89,8 @@ func (a *GenHandler) MiddlewareValidateUser(next http.Handler, w http.ResponseWr
 	return nil
 }
 
-// MiddlewareValidateTodo validates the todo in the request and calls next if ok
+// MiddlewareValidateTodo validates the todos in the request and calls next if ok
 func (g *GenHandler) MiddlewareValidateTodo(next http.Handler, w http.ResponseWriter, r *http.Request) error {
-	fmt.Println("Inside middleware todo")
-
-	//return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	todo := &models.Todo{}
 	err := models.FromJSON(todo, r.Body)
 	if err != nil {
@@ -109,9 +101,8 @@ func (g *GenHandler) MiddlewareValidateTodo(next http.Handler, w http.ResponseWr
 		return err
 	}
 
-	// validate the todo
+	// validate the todos
 	errs := g.Todos.v.Validate(todo)
-	g.Todos.l.Println(errs.Errors())
 	if len(errs) != 0 {
 		g.Todos.l.Println("[ERROR] validating todo", errs)
 
@@ -121,12 +112,11 @@ func (g *GenHandler) MiddlewareValidateTodo(next http.Handler, w http.ResponseWr
 		return err
 	}
 
-	// add the todo to the context
+	// add the todos to the context
 	ctx := context.WithValue(r.Context(), KeyTodo{}, todo)
 	r = r.WithContext(ctx)
 
 	// Call the next handler, which can be another middleware in the chain, or the final handler.
 	next.ServeHTTP(w, r)
 	return nil
-	//})
 }

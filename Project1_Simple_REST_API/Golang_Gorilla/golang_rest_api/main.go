@@ -55,6 +55,8 @@ func main() {
 	getR.HandleFunc("/users", ah.ListAll)
 	getR.HandleFunc("/users/{id:[0-9]+}", ah.ListSingle)
 	getR.HandleFunc("/users/{id:[0-9]+}/todos", th.ListAll)
+	getR.HandleFunc("/users/{id:[0-9]+}/todos/{tid:[0-9]+}", th.ListSingle)
+
 
 	postR := apiV1.Methods("POST").Subrouter()
 	postR.HandleFunc("/users", ah.Create)
@@ -63,10 +65,13 @@ func main() {
 
 	putR := apiV1.Methods("PUT").Subrouter()
 	putR.HandleFunc("/users/{id:[0-9]+}", ah.Update)
-	//putR.Use(gh.MiddlewareValidateUser)
+	putR.HandleFunc("/users/{id:[0-9]+}/todos/{tid:[0-9]+}", th.Update)
+	putR.Use(gh.MiddlewareValidate)
 
 	deleteR := apiV1.Methods(http.MethodDelete).Subrouter()
 	deleteR.HandleFunc("/users/{id:[0-9]+}", ah.Delete)
+	deleteR.HandleFunc("/users/{id:[0-9]+}/todos/{tid:[0-9]+}", th.Delete)
+
 
 	// create a new server
 	l.Println(cfg.Port)

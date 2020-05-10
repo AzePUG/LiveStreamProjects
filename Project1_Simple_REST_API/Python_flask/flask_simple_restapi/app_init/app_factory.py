@@ -1,6 +1,6 @@
 from flask import Flask
 import os, logging,sys
-from extensions.extension import db,ma,migrate
+from extensions.extension import db,ma,migrate,jwt
 from logging.config import dictConfig
 
 
@@ -41,5 +41,6 @@ def create_app(settings_name):
     db.init_app(app)
     ma.init_app(app)
     migrate.init_app(app,db)
+    jwt.init_app(app)
 
     return app

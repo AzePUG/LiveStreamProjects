@@ -1,5 +1,5 @@
 from extensions.extension import ma,fields,validate,validates_schema
-from app.models import Users
+from app.models import Users,Todo
 from app.utils import get_secret_hash
 
 class UserSchema(ma.ModelSchema):
@@ -8,7 +8,7 @@ class UserSchema(ma.ModelSchema):
     last_name = fields.Str(required=True,validate=[validate.Length(min=2,max=250)])
     user_name = fields.Str(required=True,validate=[validate.Length(min=2,max=250)])
     email = fields.Email(required=True)
-    password = fields.Str(required=True,validate=[validate.Regexp(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?#&]{8,}$")])
+    password = fields.Str(load_only=True,required=True,validate=[validate.Regexp(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?#&]{8,}$")])
 
     @validates_schema(skip_on_field_errors=True)
     def hash_pass(self,data,**kwargs):
@@ -17,6 +17,8 @@ class UserSchema(ma.ModelSchema):
 
     class Meta:
         model = Users
+
+    todos = fields.Nested('TodoSchema', many=True)
         
 class UpdateSchema(ma.Schema):
 
@@ -34,4 +36,19 @@ class UpdateSchema(ma.Schema):
 
 
 
-        
+class TodoSchema(ma.ModelSchema):
+
+    title = fields.Str(required=True,validate=[validate.Length(min=2,max=250)])
+    description = fields.Str(validate=[validate.Length(min=2,max=250)])
+
+    class Meta:
+        model = Todo
+        include_fk = True
+
+
+
+class TodoUpdateSchema(ma.Schema):
+
+    title = fields.Str(validate=[validate.Length(min=2,max=250)])
+    description = fields.Str(validate=[validate.Length(min=2,max=250)])
+    user_id  = fields.Int()

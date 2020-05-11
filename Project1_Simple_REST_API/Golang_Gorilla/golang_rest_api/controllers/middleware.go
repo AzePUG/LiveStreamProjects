@@ -2,12 +2,15 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"regexp"
 
 	"fmt"
 	"golang_restful_api/models"
 	"golang_restful_api/utils"
+	"golang_restful_api/auth"
+
 )
 
 //type genF = func(*GenHandler, http.Handler) http.Handler
@@ -34,6 +37,19 @@ var uRLPathRegex = map[string]string{
 func CommonMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
+		next.ServeHTTP(w, r)
+	})
+}
+
+// SetMiddlewareAuthentication ...
+func SetMiddlewareAuthentication(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := auth.TokenValid(r)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			utils.Respond(w, &GenericError{Message: err.Error()})
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }

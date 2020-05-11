@@ -2,11 +2,10 @@ package controllers
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 
-	"fmt"
 	"golang_restful_api/models"
 	"golang_restful_api/utils"
 	"golang_restful_api/auth"
@@ -54,6 +53,41 @@ func SetMiddlewareAuthentication(next http.Handler) http.Handler {
 	})
 }
 
+// TODO: make it as part of General Middleware based on url path
+func (g *GenHandler)MiddlewareValidateLogin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		login := &models.Login{}
+		fmt.Println(r.Body)
+		err := models.FromJSON(login, r.Body)
+		if err != nil {
+			g.Users.l.Println("[ERROR] deserializing user login credentials", err)
+
+			w.WriteHeader(http.StatusBadRequest)
+			utils.Respond(w, &GenericError{Message: err.Error()})
+			return
+		}
+
+		// validate the user
+		errs := g.Users.v.Validate(login)
+		g.Users.l.Println("Here: ", errs.Errors())
+		if len(errs) != 0 {
+			g.Users.l.Println("[ERROR] validating user credentials", errs)
+
+			// return the validation messages as an array
+			w.WriteHeader(http.StatusBadRequest)
+			utils.Respond(w, &ValidationError{Messages: errs.Errors()})
+			return
+		}
+		// Add login credentials to the context.
+		ctx := context.WithValue(r.Context(), KeyLogin{}, login)
+		r = r.WithContext(ctx)
+		fmt.Println(r)
+		// Call the next handler, which can be another middleware in the chain, or the final handler.
+		// TODO: this will fail
+		next.ServeHTTP(w, r)
+	})
+}
+
 // MiddlewareValidate general middleware method for calling specific validations based on path.
 func (g *GenHandler) MiddlewareValidate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -72,11 +106,11 @@ func (g *GenHandler) MiddlewareValidate(next http.Handler) http.Handler {
 }
 
 // MiddlewareValidateUser validates the user in the request and calls next if ok
-func (a *GenHandler) MiddlewareValidateUser(next http.Handler, w http.ResponseWriter, r *http.Request) error {
+func (g *GenHandler) MiddlewareValidateUser(next http.Handler, w http.ResponseWriter, r *http.Request) error {
 	acc := &models.User{}
 	err := models.FromJSON(acc, r.Body)
 	if err != nil {
-		a.Users.l.Println("[ERROR] deserializing user", err)
+		g.Users.l.Println("[ERROR] deserializing user", err)
 
 		w.WriteHeader(http.StatusBadRequest)
 		utils.Respond(w, &GenericError{Message: err.Error()})
@@ -84,10 +118,10 @@ func (a *GenHandler) MiddlewareValidateUser(next http.Handler, w http.ResponseWr
 	}
 
 	// validate the user
-	errs := a.Users.v.Validate(acc)
-	a.Users.l.Println("Here: ", errs.Errors())
+	errs := g.Users.v.Validate(acc)
+	g.Users.l.Println("Here: ", errs.Errors())
 	if len(errs) != 0 {
-		a.Users.l.Println("[ERROR] validating user", errs)
+		g.Users.l.Println("[ERROR] validating user", errs)
 
 		// return the validation messages as an array
 		w.WriteHeader(http.StatusBadRequest)
@@ -98,7 +132,6 @@ func (a *GenHandler) MiddlewareValidateUser(next http.Handler, w http.ResponseWr
 	// add the user to the context
 	ctx := context.WithValue(r.Context(), KeyUser{}, acc)
 	r = r.WithContext(ctx)
-	fmt.Println(r)
 	// Call the next handler, which can be another middleware in the chain, or the final handler.
 	next.ServeHTTP(w, r)
 	//})

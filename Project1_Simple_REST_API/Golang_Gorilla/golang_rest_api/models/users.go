@@ -16,6 +16,11 @@ type User struct {
 	PasswordHash string `json:"-" gorm:"not null;unique_index"`
 }
 
+type Login struct {
+	Email string `json:"email" validation:"required,email"`
+	Password string `json:"password" validation:"required,min=5,max=15"`
+}
+
 // UserDB interface for holding all direct database related actions
 type UserDB interface {
 	// Methods for querying users

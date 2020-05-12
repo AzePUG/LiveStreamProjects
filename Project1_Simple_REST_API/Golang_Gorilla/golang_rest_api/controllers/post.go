@@ -39,4 +39,5 @@ func (t *Todos) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusCreated)
 	t.l.Printf("[DEBUG] Inserting todo: %#v\n", todo)
+	// TODO: return created data
 }

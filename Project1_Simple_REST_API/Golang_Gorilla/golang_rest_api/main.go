@@ -59,11 +59,10 @@ func main() {
 
 
 	postR := apiV1.Methods("POST").Subrouter()
-	//postR.HandleFunc("/users", ah.Create)
-	//postR.HandleFunc("/users/{id:[0-9]+}/todos", th.Create)
-	postR.HandleFunc("/login", ah.Login)
-	// postR.Use(gh.MiddlewareValidate)
-	postR.Use(gh.MiddlewareValidateLogin)
+	postR.HandleFunc("/users", ah.Create)
+	postR.HandleFunc("/users/{id:[0-9]+}/todos", th.Create)
+	postR.Handle("/users/login", ah.Login)
+	postR.Use(gh.MiddlewareValidate)
 
 	putR := apiV1.Methods("PUT").Subrouter()
 	putR.HandleFunc("/users/{id:[0-9]+}", ah.Update)

@@ -14,7 +14,7 @@ jwt "github.com/dgrijalva/jwt-go"
 
 var ApiKey = []byte("my-super-secret-secret")
 
-func CreateToken(userId uint32) (string, error) {
+func CreateToken(userId uint) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["authorized"] = true
 	claims["user_id"] = userId

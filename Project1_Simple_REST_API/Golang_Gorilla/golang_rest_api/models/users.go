@@ -17,7 +17,7 @@ type User struct {
 }
 
 type Login struct {
-	Email string `json:"email" validation:"required,email"`
+	Email    string `json:"email" validation:"required,email"`
 	Password string `json:"password" validation:"required,min=5,max=15"`
 }
 
@@ -71,7 +71,7 @@ func (us *userService) Authenticate(email, password string) (*User, error) {
 		return nil, err
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash),
-		[]byte(password + us.pepper))
+		[]byte(password+us.pepper))
 	if err != nil {
 		switch err {
 		case bcrypt.ErrMismatchedHashAndPassword:

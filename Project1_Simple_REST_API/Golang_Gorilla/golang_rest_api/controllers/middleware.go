@@ -6,10 +6,9 @@ import (
 	"net/http"
 	"regexp"
 
+	"golang_restful_api/auth"
 	"golang_restful_api/models"
 	"golang_restful_api/utils"
-	"golang_restful_api/auth"
-
 )
 
 //type genF = func(*GenHandler, http.Handler) http.Handler
@@ -26,10 +25,11 @@ type GenHandler struct {
 // }
 
 var uRLPathRegex = map[string]string{
-	"^/api/v1/users$":                      "users",
-	"^/api/v1/users/(?P<v0>[0-9]+)$":		"users",
-	"^/api/v1/users/(?P<v0>[0-9]+)/todos$": "todos",
+	"^/api/v1/users$":                                     "users",
+	"^/api/v1/users/(?P<v0>[0-9]+)$":                      "users",
+	"^/api/v1/users/(?P<v0>[0-9]+)/todos$":                "todos",
 	"^/api/v1/users/(?P<v0>[0-9]+)/todos/(?P<v0>[0-9]+)$": "todos",
+	"^/api/v1/users/login$":                               "login",
 }
 
 // CommonMiddleware for updating default content type for our router
@@ -53,41 +53,6 @@ func SetMiddlewareAuthentication(next http.Handler) http.Handler {
 	})
 }
 
-// TODO: make it as part of General Middleware based on url path
-func (g *GenHandler)MiddlewareValidateLogin(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		login := &models.Login{}
-		fmt.Println(r.Body)
-		err := models.FromJSON(login, r.Body)
-		if err != nil {
-			g.Users.l.Println("[ERROR] deserializing user login credentials", err)
-
-			w.WriteHeader(http.StatusBadRequest)
-			utils.Respond(w, &GenericError{Message: err.Error()})
-			return
-		}
-
-		// validate the user
-		errs := g.Users.v.Validate(login)
-		g.Users.l.Println("Here: ", errs.Errors())
-		if len(errs) != 0 {
-			g.Users.l.Println("[ERROR] validating user credentials", errs)
-
-			// return the validation messages as an array
-			w.WriteHeader(http.StatusBadRequest)
-			utils.Respond(w, &ValidationError{Messages: errs.Errors()})
-			return
-		}
-		// Add login credentials to the context.
-		ctx := context.WithValue(r.Context(), KeyLogin{}, login)
-		r = r.WithContext(ctx)
-		fmt.Println(r)
-		// Call the next handler, which can be another middleware in the chain, or the final handler.
-		// TODO: this will fail
-		next.ServeHTTP(w, r)
-	})
-}
-
 // MiddlewareValidate general middleware method for calling specific validations based on path.
 func (g *GenHandler) MiddlewareValidate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -97,16 +62,51 @@ func (g *GenHandler) MiddlewareValidate(next http.Handler) http.Handler {
 			if match && val == "users" {
 				g.MiddlewareValidateUser(next, w, r)
 				break
-			} else {
+			} else if match && val == "todos" {
 				g.MiddlewareValidateTodo(next, w, r)
+				break
+			} else {
+				// Matching /login then
+				g.MiddlewareValidateLogin(next, w, r)
 				break
 			}
 		}
 	})
 }
 
+func (g *GenHandler) MiddlewareValidateLogin(next http.Handler, w http.ResponseWriter, r *http.Request)  {
+	login := &models.Login{}
+	fmt.Println(r.Body)
+	err := models.FromJSON(login, r.Body)
+	if err != nil {
+		g.Users.l.Println("[ERROR] deserializing user login credentials", err)
+
+		w.WriteHeader(http.StatusBadRequest)
+		utils.Respond(w, &GenericError{Message: err.Error()})
+		return
+	}
+
+	// validate the user
+	errs := g.Users.v.Validate(login)
+	if len(errs) != 0 {
+		g.Users.l.Println("[ERROR] validating user login credentials", errs)
+
+		// return the validation messages as an array
+		w.WriteHeader(http.StatusBadRequest)
+		utils.Respond(w, &ValidationError{Messages: errs.Errors()})
+		return
+	}
+	// Add login credentials to the context.
+	ctx := context.WithValue(r.Context(), KeyLogin{}, login)
+	r = r.WithContext(ctx)
+	// Call the next handler, which can be another middleware in the chain, or the final handler.
+	// TODO: this will fail
+	next.ServeHTTP(w, r)
+	return
+}
+
 // MiddlewareValidateUser validates the user in the request and calls next if ok
-func (g *GenHandler) MiddlewareValidateUser(next http.Handler, w http.ResponseWriter, r *http.Request) error {
+func (g *GenHandler) MiddlewareValidateUser(next http.Handler, w http.ResponseWriter, r *http.Request) {
 	acc := &models.User{}
 	err := models.FromJSON(acc, r.Body)
 	if err != nil {
@@ -114,19 +114,18 @@ func (g *GenHandler) MiddlewareValidateUser(next http.Handler, w http.ResponseWr
 
 		w.WriteHeader(http.StatusBadRequest)
 		utils.Respond(w, &GenericError{Message: err.Error()})
-		return err
+		return
 	}
 
 	// validate the user
 	errs := g.Users.v.Validate(acc)
-	g.Users.l.Println("Here: ", errs.Errors())
 	if len(errs) != 0 {
 		g.Users.l.Println("[ERROR] validating user", errs)
 
 		// return the validation messages as an array
 		w.WriteHeader(http.StatusBadRequest)
 		utils.Respond(w, &ValidationError{Messages: errs.Errors()})
-		return err
+		return
 	}
 
 	// add the user to the context
@@ -134,12 +133,11 @@ func (g *GenHandler) MiddlewareValidateUser(next http.Handler, w http.ResponseWr
 	r = r.WithContext(ctx)
 	// Call the next handler, which can be another middleware in the chain, or the final handler.
 	next.ServeHTTP(w, r)
-	//})
-	return nil
+
 }
 
 // MiddlewareValidateTodo validates the todos in the request and calls next if ok
-func (g *GenHandler) MiddlewareValidateTodo(next http.Handler, w http.ResponseWriter, r *http.Request) error {
+func (g *GenHandler) MiddlewareValidateTodo(next http.Handler, w http.ResponseWriter, r *http.Request)  {
 	todo := &models.Todo{}
 	err := models.FromJSON(todo, r.Body)
 	if err != nil {
@@ -147,7 +145,7 @@ func (g *GenHandler) MiddlewareValidateTodo(next http.Handler, w http.ResponseWr
 
 		w.WriteHeader(http.StatusBadRequest)
 		utils.Respond(w, &GenericError{Message: err.Error()})
-		return err
+		return
 	}
 
 	// validate the todos
@@ -158,7 +156,7 @@ func (g *GenHandler) MiddlewareValidateTodo(next http.Handler, w http.ResponseWr
 		// return the validation messages as an array
 		w.WriteHeader(http.StatusBadRequest)
 		utils.Respond(w, &ValidationError{Messages: errs.Errors()})
-		return err
+		return
 	}
 
 	// add the todos to the context
@@ -167,5 +165,4 @@ func (g *GenHandler) MiddlewareValidateTodo(next http.Handler, w http.ResponseWr
 
 	// Call the next handler, which can be another middleware in the chain, or the final handler.
 	next.ServeHTTP(w, r)
-	return nil
 }

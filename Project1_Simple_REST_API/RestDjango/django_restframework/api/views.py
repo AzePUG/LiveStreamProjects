@@ -221,8 +221,13 @@ class Login(TokenObtainPairView):
         todos =  Todo.objects.filter(user=acces_token.get("user_id")).all()
         
         todos = TodoSerializer(todos, many=True).data
+        user =  User.objects.filter(id=acces_token.get("user_id")).last()
+        
+        user_details = UserSerializerDetails(user)
+
 
         data["todos"] = todos
+        data["user_details"] = user_details.data
 
             
         return Response(data)

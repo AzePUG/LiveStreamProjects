@@ -54,24 +54,25 @@ func main() {
 	getR := apiV1.Methods("GET").Subrouter()
 	getR.HandleFunc("/users", ah.ListAll)
 	getR.HandleFunc("/users/{id:[0-9]+}", ah.ListSingle)
-	getR.HandleFunc("/users/{id:[0-9]+}/todos", th.ListAll)
-	getR.HandleFunc("/users/{id:[0-9]+}/todos/{tid:[0-9]+}", th.ListSingle)
+	getR.HandleFunc("/users/todos", th.ListAll)
+	getR.HandleFunc("/users/todos/{tid:[0-9]+}", th.ListSingle)
 
 
 	postR := apiV1.Methods("POST").Subrouter()
 	postR.HandleFunc("/users", ah.Create)
-	postR.HandleFunc("/users/{id:[0-9]+}/todos", th.Create)
+	postR.HandleFunc("/users/todos", th.Create)
 	postR.HandleFunc("/users/login", ah.Login)
 	postR.Use(gh.MiddlewareValidate)
 
 	putR := apiV1.Methods("PUT").Subrouter()
 	putR.HandleFunc("/users/{id:[0-9]+}", ah.Update)
-	putR.HandleFunc("/users/{id:[0-9]+}/todos/{tid:[0-9]+}", th.Update)
+	putR.HandleFunc("/users/todos/{tid:[0-9]+}", th.Update)
 	putR.Use(gh.MiddlewareValidate)
 
 	deleteR := apiV1.Methods(http.MethodDelete).Subrouter()
 	deleteR.HandleFunc("/users/{id:[0-9]+}", ah.Delete)
-	deleteR.HandleFunc("/users/{id:[0-9]+}/todos/{tid:[0-9]+}", th.Delete)
+	deleteR.HandleFunc("/users/todos/{tid:[0-9]+}", th.Delete)
+	deleteR.Use(gh.SetMiddlewareAuthentication)
 
 
 	// create a new server

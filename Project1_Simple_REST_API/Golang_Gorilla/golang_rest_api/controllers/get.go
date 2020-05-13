@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"golang_restful_api/auth"
 	"golang_restful_api/models"
 	"golang_restful_api/utils"
 	"net/http"
@@ -9,7 +10,6 @@ import (
 // ListAll handles GET requests and returns all current users
 func (a *Users) ListAll(w http.ResponseWriter, r *http.Request) {
 	a.l.Println("[DEBUG] get all records")
-
 	accs, err := a.us.GetUsers()
 	switch err {
 	case nil:
@@ -71,12 +71,18 @@ func (a *Users) ListSingle(w http.ResponseWriter, r *http.Request) {
 // ListAll handles GET requests and returns all current todos for a given user
 func (t *Todos) ListAll(w http.ResponseWriter, r *http.Request) {
 	t.l.Println("[DEBUG] get all records")
-	// Get the id from request -> URL
-	id := getUserID(r)
 
-	t.l.Println("[DEBUG] get record id", id)
+	userID, err := auth.ExtractTokenID(r)
+	if err != nil {
+		t.l.Println("[ERROR] Something went wrong with token parsing", err)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		utils.Respond(w, &GenericError{Message: "Something went wrong with token parsing"})
+		return
+	}
 
-	acc, err := t.us.GetUserByID(id)
+	t.l.Println("[DEBUG] get record id", userID)
+
+	acc, err := t.us.GetUserByID(userID)
 
 	switch err {
 	case nil:
@@ -112,12 +118,17 @@ func (t *Todos) ListAll(w http.ResponseWriter, r *http.Request) {
 
 // ListSingle handles GET requests
 func (t *Todos) ListSingle(w http.ResponseWriter, r *http.Request) {
-	// Get the id from request -> URL
-	id := getUserID(r)
+	userID, err := auth.ExtractTokenID(r)
+	if err != nil {
+		t.l.Println("[ERROR] Something went wrong with token parsing", err)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		utils.Respond(w, &GenericError{Message: "Something went wrong with token parsing"})
+		return
+	}
 
-	t.l.Println("[DEBUG] get record id", id)
+	t.l.Println("[DEBUG] get record id", userID)
 
-	acc, err := t.us.GetUserByID(id)
+	acc, err := t.us.GetUserByID(userID)
 
 	switch err {
 	case nil:

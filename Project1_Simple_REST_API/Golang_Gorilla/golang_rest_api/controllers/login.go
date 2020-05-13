@@ -20,16 +20,27 @@ func (us *Users) Login(w http.ResponseWriter, r *http.Request) {
 		utils.Respond(w, &GenericError{Message: "Something went wrong with user authentication"})
 		return
 	}
-	token, err := auth.CreateToken(foundUser.ID)
+	accessToken, err := auth.CreateAccessToken(foundUser.ID)
 	if err != nil {
-		us.l.Println("[ERROR] Something went wrong with user token creation", err)
+		us.l.Println("[ERROR] Something went wrong with user Access token creation", err)
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		utils.Respond(w, &GenericError{Message: "Something went wrong with user token creation"})
+		utils.Respond(w, &GenericError{Message: "Something went wrong with user Access token creation"})
 		return
 	}
 
-	err = utils.Respond(w, token)
+	refreshToken, err := auth.CreateRefreshToken(foundUser.ID)
 	if err != nil {
-		us.l.Println("[ERROR] serializing token", err)
+		us.l.Println("[ERROR] Something went wrong with user Refresh token creation", err)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		utils.Respond(w, &GenericError{Message: "Something went wrong with user Refresh token creation"})
+		return
+	}
+	tokens := map[string]string {
+		"AccessToken": accessToken,
+		"RefreshToken": refreshToken,
+	}
+	err = utils.Respond(w, tokens)
+	if err != nil {
+		us.l.Println("[ERROR] serializing tokens", err)
 	}
 }

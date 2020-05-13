@@ -27,8 +27,8 @@ type GenHandler struct {
 var uRLPathRegex = map[string]string{
 	"^/api/v1/users$":                                     "users",
 	"^/api/v1/users/(?P<v0>[0-9]+)$":                      "users",
-	"^/api/v1/users/(?P<v0>[0-9]+)/todos$":                "todos",
-	"^/api/v1/users/(?P<v0>[0-9]+)/todos/(?P<v0>[0-9]+)$": "todos",
+	"^/api/v1/users/todos$":                			   "todos",
+	"^/api/v1/users/todos/(?P<v0>[0-9]+)$": 			   "todos",
 	"^/api/v1/users/login$":                               "login",
 }
 
@@ -41,9 +41,9 @@ func CommonMiddleware(next http.Handler) http.Handler {
 }
 
 // SetMiddlewareAuthentication ...
-func SetMiddlewareAuthentication(next http.Handler) http.Handler {
+func (g *GenHandler) SetMiddlewareAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := auth.TokenValid(r)
+		_, err := auth.TokenValid(r)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			utils.Respond(w, &GenericError{Message: err.Error()})
@@ -63,9 +63,11 @@ func (g *GenHandler) MiddlewareValidate(next http.Handler) http.Handler {
 				g.MiddlewareValidateUser(next, w, r)
 				break
 			} else if match && val == "todos" {
+				// TODO: seems to be the first check does not work.
+				g.SetMiddlewareAuthentication(next)
 				g.MiddlewareValidateTodo(next, w, r)
 				break
-			} else {
+			} else if match && val == "login" {
 				// Matching /login then
 				g.MiddlewareValidateLogin(next, w, r)
 				break

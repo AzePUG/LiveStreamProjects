@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"golang_restful_api/auth"
 	"golang_restful_api/models"
 	"golang_restful_api/utils"
 	"net/http"
@@ -32,10 +33,16 @@ func (a *Users) Update(w http.ResponseWriter, r *http.Request) {
 
 // Update handles PUT requests to update users
 func (t *Todos) Update(w http.ResponseWriter, r *http.Request) {
-	id := getUserID(r)
-	t.l.Println("[DEBUG] get record id", id)
+	userID, err := auth.ExtractTokenID(r)
+	if err != nil {
+		t.l.Println("[ERROR] Something went wrong with token parsing", err)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		utils.Respond(w, &GenericError{Message: "Something went wrong with token parsing"})
+		return
+	}
+	t.l.Println("[DEBUG] get record id", userID)
 
-	acc, err := t.us.GetUserByID(id)
+	acc, err := t.us.GetUserByID(userID)
 
 	switch err {
 	case nil:
@@ -59,7 +66,7 @@ func (t *Todos) Update(w http.ResponseWriter, r *http.Request) {
 	todo := r.Context().Value(KeyTodo{}).(*models.Todo)
 	todo.ID = tid
 	t.l.Println("[DEBUG] updating todo with id", todo.ID)
-	todo.UserID = id
+	todo.UserID = userID
 	err = t.ts.UpdateTodo(acc, todo, tid)
 
 	if err == models.ErrNotFound {

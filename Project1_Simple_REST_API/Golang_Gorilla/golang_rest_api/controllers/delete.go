@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"golang_restful_api/auth"
 	"golang_restful_api/models"
 	"golang_restful_api/utils"
 	"net/http"
@@ -28,16 +29,21 @@ func (a *Users) Delete(w http.ResponseWriter, r *http.Request) {
 		utils.Respond(w, &GenericError{Message: err.Error()})
 		return
 	}
-
 	w.WriteHeader(http.StatusNoContent)
 }
 
 // Delete handles DELETE requests and removes items from the database
 func (t *Todos) Delete(w http.ResponseWriter, r *http.Request) {
-	id := getUserID(r)
-	t.l.Println("[DEBUG] get record id", id)
+	userID, err := auth.ExtractTokenID(r)
+	if err != nil {
+		t.l.Println("[ERROR] Something went wrong with token parsing", err)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		utils.Respond(w, &GenericError{Message: "Something went wrong with token parsing"})
+		return
+	}
+	t.l.Println("[DEBUG] get record id", userID)
 
-	acc, err := t.us.GetUserByID(id)
+	acc, err := t.us.GetUserByID(userID)
 
 	switch err {
 	case nil:

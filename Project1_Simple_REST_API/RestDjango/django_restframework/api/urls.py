@@ -1,5 +1,5 @@
 from django.urls import  path
-from .views import  UserDetail,UserList,CreateUser, Todos, TodoOperations,Login
+from .views import  UserDetail,UserList,CreateUser, Todos, TodoOperations,Login,RefreshToken
 from rest_framework_simplejwt.views import token_refresh
 
 
@@ -13,6 +13,6 @@ urlpatterns = [
     path("user/todo/<int:pk>/",TodoOperations.as_view()), #PUT,GET,DELETE specifc
 
     path("login/", Login.as_view()),
-    path("token-refresh/", token_refresh)
+    path("token-refresh/", RefreshToken.as_view())
 
 ]

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 import django.contrib.auth.password_validation as validators
 from django.contrib.auth import password_validation
-
+from .models import  Todo
 
 User = get_user_model()
 
@@ -21,6 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
             "password": {'required': True}} 
 
     #validate user password with deault django password validator
+    #You can specify custom field-level validation by adding .validate_<field_name> methods to your Serializer subclass. These are similar to the .clean_<field_name> methods on Django forms.These are similar to the .clean_<field_name> methods on Django forms.
     def validate_password(self, value):
         password_validation.validate_password(value, self.instance)
         return value
@@ -47,4 +48,12 @@ class UserSerializerDetails(serializers.ModelSerializer):
         model = User
 
         fields =("first_name", "last_name", "email","username","id")
+    
+
+class TodoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Todo
+
+        fields = ("id","user","title","description",)
+
     

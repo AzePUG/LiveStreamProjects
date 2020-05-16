@@ -1,26 +1,21 @@
 from django.shortcuts import render
 from django.http import  HttpResponse
-# Create your views here.
-from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from rest_framework.authtoken.models import Token
-from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
-# from .models import  User
 from django.shortcuts import get_object_or_404
 import  logging
 from .utils import  LOGGING
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.decorators import api_view
-from .serializer import  UserSerializer,UserSerializerDetails
+from .serializer import  UserSerializer,UserSerializerDetails, TodoSerializer
 from django.shortcuts import get_object_or_404
+from .models import Todo
+from django.contrib.auth import get_user_model
+from .utils import jwt_decode_handler
+from rest_framework_simplejwt.views import  TokenObtainPairView
 
 logging.config.dictConfig(LOGGING)
-
-from django.contrib.auth import get_user_model
-
-
 User = get_user_model()
 
 
@@ -88,7 +83,7 @@ class UserDetail(APIView):
             data = dict(serializer.data)
             data.pop("password")
             
-            return Response(data, status=status.HTTP_201_CREATED)
+            return Response(data)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
@@ -104,3 +99,135 @@ class UserDetail(APIView):
         return Response({"message": f"User with username {user.username} has been deleted"},status=status.HTTP_200_OK)
 
        
+
+class Todos(APIView): 
+    permission_classes = [IsAuthenticated]
+
+
+    def post(self, request):
+         
+        token = request.headers.get("Authorization").split(" ")[1]
+
+        details = jwt_decode_handler(token)
+        user_id = details.get("user_id")
+
+        if not User.objects.filter(id=user_id).last(): return Response({"message": "No such a user found"},status=status.HTTP_404_NOT_FOUND)
+
+        request.data["user"] = user_id
+        serializer = TodoSerializer(data=request.data)
+    
+      
+        
+        if serializer.is_valid():
+
+            serializer.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        else: return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+
+    def get(self,request):
+        token = request.headers.get("Authorization").split(" ")[1]
+
+        details = jwt_decode_handler(token)
+      
+
+        user_id = details.get("user_id")
+        
+        if not User.objects.filter(id=user_id).last(): return Response({"error": True,"message": "No such a user found"},status=status.HTTP_404_NOT_FOUND)
+
+    
+        todos =  Todo.objects.filter(user=user_id).all()
+        if not todos: return Response({"message":"No todos found for this user"})
+        data = TodoSerializer(todos, many=True).data
+                
+        return Response(data)
+    
+
+class TodoOperations(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self,request,pk):
+        
+        token = request.headers.get("Authorization").split(" ")[1]
+        details = jwt_decode_handler(token)
+
+        if not (User.objects.filter(id=details.get("user_id")).last() and Todo.objects.filter(id=pk).last()): return Response({"message": "No such a user or todo"},status=status.HTTP_404_NOT_FOUND)  
+
+        todo = Todo.objects.filter(id=pk).first()
+
+      
+
+        serializer = TodoSerializer(instance=todo, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            
+            serializer.save()
+
+            return Response(serializer.data)
+        
+        else: return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+    def delete(self,request,pk):
+        
+        token = request.headers.get("Authorization").split(" ")[1]
+
+        details = jwt_decode_handler(token)
+
+        if not (User.objects.filter(id=details.get("user_id")).last() and Todo.objects.filter(id=pk).last()): return Response({"message": "No such a user or todo"},status=status.HTTP_404_NOT_FOUND)  
+
+        todo = Todo.objects.filter(id=pk).last()
+        
+        todo.delete()
+        
+
+        return Response({"status": "OK", "message": "Todo has been deleted"})
+
+
+    def get(self,request,pk):
+
+        token = request.headers.get("Authorization").split(" ")[1]
+
+        details = jwt_decode_handler(token)
+
+
+        if not (User.objects.filter(id=details.get("user_id")).last() and Todo.objects.filter(id=pk).last()): return Response({"message": "No such a user or todo"},status=status.HTTP_404_NOT_FOUND)  
+        
+        todos =  Todo.objects.filter(id=pk,user=details.get("user_id")).last()
+        
+        if not todos:  return Response({"message":"no todos found"}, status=status.HTTP_404_NOT_FOUND) 
+
+        data = TodoSerializer(todos).data
+                
+        return Response(data)
+
+
+
+
+class Login(TokenObtainPairView):
+
+    def post(self, request, *args, **kwargs):
+        data = super().post(request, *args, **kwargs)
+
+        data = data.data
+
+        acces_token = jwt_decode_handler(data.get("access"))
+
+        if not User.objects.filter(id=acces_token.get("user_id")).last(): return Response({"error": True,"message": "No such a user"},status=status.HTTP_404_NOT_FOUND)  
+        
+        todos =  Todo.objects.filter(user=acces_token.get("user_id")).all()
+        
+        todos = TodoSerializer(todos, many=True).data
+        user =  User.objects.filter(id=acces_token.get("user_id")).last()
+        
+        user_details = UserSerializerDetails(user)
+
+
+        data["todos"] = todos
+        data["user_details"] = user_details.data
+
+            
+        return Response(data)

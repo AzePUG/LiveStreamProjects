@@ -16,6 +16,11 @@ type User struct {
 	PasswordHash string `json:"-" gorm:"not null;unique_index"`
 }
 
+type Login struct {
+	Email    string `json:"email" validation:"required,email"`
+	Password string `json:"password" validation:"required,min=5,max=15"`
+}
+
 // UserDB interface for holding all direct database related actions
 type UserDB interface {
 	// Methods for querying users
@@ -39,6 +44,7 @@ type UserDBExtra interface {
 type UserService interface {
 	UserDB
 	UserDBExtra
+	Authenticate(email, password string) (*User, error)
 }
 
 // NewUserService creating user service here
@@ -55,6 +61,26 @@ var _ UserService = &userService{}
 type userService struct {
 	UserDB
 	pepper string
+}
+
+// Authenticate Can be used to authenticate the user with the
+// provided email address and password.
+func (us *userService) Authenticate(email, password string) (*User, error) {
+	foundUser, err := us.GetUserByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash),
+		[]byte(password+us.pepper))
+	if err != nil {
+		switch err {
+		case bcrypt.ErrMismatchedHashAndPassword:
+			return nil, ErrPasswordIncorrect
+		default:
+			return nil, err
+		}
+	}
+	return foundUser, nil
 }
 
 var _ UserDB = &userGorm{}

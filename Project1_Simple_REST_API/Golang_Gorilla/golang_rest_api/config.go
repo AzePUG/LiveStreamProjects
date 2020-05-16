@@ -18,7 +18,7 @@ type PostgresConfig struct {
 	DBName string `json:"dbname"`
 }
 
-// Dialect returnin for DB dialect
+// Dialect returning for DB dialect
 func (c PostgresConfig) Dialect() string {
 	return "postgres"
 }

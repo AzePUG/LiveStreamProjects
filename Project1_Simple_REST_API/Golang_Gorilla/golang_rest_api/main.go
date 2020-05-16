@@ -22,7 +22,8 @@ func main() {
 	dbCfg := cfg.Database
 	services, err := models.NewServices(
 		models.WithGorm(dbCfg.Dialect(), dbCfg.ConnectionInfo()),
-		models.WithUser(cfg.Pepper))
+		models.WithUser(cfg.Pepper),
+		models.WithTodo())
 	must(err)
 
 	defer services.Close()
@@ -33,8 +34,16 @@ func main() {
 	v := models.NewValidation()
 	us := services.User
 
-	// create the user handler/conroller
+	l_todo := log.New(os.Stdout, "todos-api -> ", log.LstdFlags)
+	ts := services.Todo
+
+	// create the handler/conrollers
 	ah := controllers.NewUsers(l, v, us)
+	th := controllers.NewTodos(l_todo, v, ts, us)
+	gh := controllers.GenHandler{
+		ah,
+		th,
+	}
 
 	// Create new serve mux and register handlers
 	r := mux.NewRouter()
@@ -45,17 +54,26 @@ func main() {
 	getR := apiV1.Methods("GET").Subrouter()
 	getR.HandleFunc("/users", ah.ListAll)
 	getR.HandleFunc("/users/{id:[0-9]+}", ah.ListSingle)
+	getR.HandleFunc("/users/todos", th.ListAll)
+	getR.HandleFunc("/users/todos/{tid:[0-9]+}", th.ListSingle)
+
 
 	postR := apiV1.Methods("POST").Subrouter()
 	postR.HandleFunc("/users", ah.Create)
-	postR.Use(ah.MiddlewareValidateUser)
+	postR.HandleFunc("/users/todos", th.Create)
+	postR.HandleFunc("/users/login", ah.Login)
+	postR.Use(gh.MiddlewareValidate)
 
 	putR := apiV1.Methods("PUT").Subrouter()
 	putR.HandleFunc("/users/{id:[0-9]+}", ah.Update)
-	putR.Use(ah.MiddlewareValidateUser)
+	putR.HandleFunc("/users/todos/{tid:[0-9]+}", th.Update)
+	putR.Use(gh.MiddlewareValidate)
 
 	deleteR := apiV1.Methods(http.MethodDelete).Subrouter()
 	deleteR.HandleFunc("/users/{id:[0-9]+}", ah.Delete)
+	deleteR.HandleFunc("/users/todos/{tid:[0-9]+}", th.Delete)
+	deleteR.Use(gh.SetMiddlewareAuthentication)
+
 
 	// create a new server
 	l.Println(cfg.Port)

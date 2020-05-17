@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
@@ -59,6 +60,12 @@ type Services struct {
 // Close closes the database connection
 func (s *Services) Close() error {
 	return s.db.Close()
+}
+
+// DB return the db connection
+func (s *Services) DB() *gorm.DB {
+	fmt.Println(s.db)
+	return s.db
 }
 
 // DestructiveReset drops all tables and rebuilds them

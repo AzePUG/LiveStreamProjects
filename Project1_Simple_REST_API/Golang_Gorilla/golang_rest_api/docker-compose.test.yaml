@@ -5,7 +5,7 @@ services:
     container_name: live_stream_pg_test
     restart: on-failure
     ports:
-      - "5433:5433"
+      - "5432:5432"
     environment:
       - POSTGRES_USER=restapitest
       - POSTGRES_PASSWORD=12345

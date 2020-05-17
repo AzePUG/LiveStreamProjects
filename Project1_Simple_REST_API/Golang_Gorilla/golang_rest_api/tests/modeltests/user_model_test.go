@@ -1,7 +1,10 @@
 package modeltests
 
-import "testing"
+import (
+	"testing"
+)
 
-func TestFindAllUsers(t *testing.T) {
-
+func TestFindSingleUser(t *testing.T) {
+	refreshUserTable()
+	seedOneUser()
 }

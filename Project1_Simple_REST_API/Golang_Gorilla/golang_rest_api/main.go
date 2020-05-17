@@ -4,6 +4,7 @@ import (
 	"flag"
 	"golang_restful_api/controllers"
 	"golang_restful_api/models"
+	"golang_restful_api/utils"
 	"log"
 	"net/http"
 	"os"
@@ -18,7 +19,7 @@ func main() {
 		"This ensures that a .config file is provided before the application start.")
 	flag.Parse()
 
-	cfg := LoadConfig(*boolPtr)
+	cfg := utils.LoadConfig(*boolPtr)
 	dbCfg := cfg.Database
 	services, err := models.NewServices(
 		models.WithGorm(dbCfg.Dialect(), dbCfg.ConnectionInfo()),

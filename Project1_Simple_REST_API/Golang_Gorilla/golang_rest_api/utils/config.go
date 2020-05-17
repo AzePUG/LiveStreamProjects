@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"encoding/json"
@@ -91,6 +91,7 @@ func LoadConfig(configreq bool) Config {
 	return c
 }
 
+// LoadTestConfig method for parsing .configtest file
 func LoadTestConfig() Config {
 	f, err := os.Open(".configtest")
 	if err != nil {

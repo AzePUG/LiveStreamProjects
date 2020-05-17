@@ -1,0 +1,12 @@
+version: '3.7'
+services:
+  postgres_db_test:
+    image: postgres
+    container_name: live_stream_pg_test
+    restart: on-failure
+    ports:
+      - "5433:5433"
+    environment:
+      - POSTGRES_USER=restapitest
+      - POSTGRES_PASSWORD=12345
+      - POSTGRES_DB=restapi_test

@@ -70,8 +70,8 @@ func DefaultConfig() Config {
 	}
 }
 
-// LoadConfig openning and loading the config file.
-// if there is no .config file then use DefaultConfig
+// LoadConfig opening and loading the config file.
+// if there is no .config file then use DefaultConfig - if the --prod flag not provided
 func LoadConfig(configreq bool) Config {
 	f, err := os.Open(".config")
 	if err != nil {
@@ -88,5 +88,21 @@ func LoadConfig(configreq bool) Config {
 		panic(err)
 	}
 	fmt.Println("Successfully loaded .config")
+	return c
+}
+
+func LoadTestConfig() Config {
+	f, err := os.Open(".configtest")
+	if err != nil {
+		fmt.Println("Error reading test config", err)
+		panic(err)
+	}
+	var c Config
+	dec := json.NewDecoder(f)
+	err = dec.Decode(&c)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Successfully loaded .configtest")
 	return c
 }

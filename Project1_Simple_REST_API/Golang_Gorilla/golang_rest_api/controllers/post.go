@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"golang_restful_api/auth"
 	"golang_restful_api/models"
 	"golang_restful_api/utils"
 	"net/http"
@@ -24,19 +23,13 @@ func (a *Users) Create(w http.ResponseWriter, r *http.Request) {
 	a.l.Printf("[DEBUG] Inserting user: %#v\n", acc)
 }
 
-// Create handles POST requests to add new users
+// Create handles POST requests to add new todos
 func (t *Todos) Create(w http.ResponseWriter, r *http.Request) {
 	// fetch the user from the context
 	todo := r.Context().Value(KeyTodo{}).(*models.Todo)
-	userID, err := auth.ExtractTokenID(r)
-	if err != nil {
-		t.l.Println("[ERROR] Something went wrong with token parsing", err)
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		utils.Respond(w, &GenericError{Message: "Something went wrong with token parsing"})
-		return
-	}
-	//id := getUserID(r)
-	todo.UserID = userID
+	// Get the user_id from JWT token and check if that user exists in database
+	acc, err := t.getTokenAndUser(w, r)
+	todo.UserID = acc.ID
 	err = t.ts.AddTodo(todo)
 	if err != nil {
 		t.l.Println("[ERROR] Something went wrong with todo creation", err)

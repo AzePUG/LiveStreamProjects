@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"golang_restful_api/auth"
 	"golang_restful_api/models"
 	"golang_restful_api/utils"
 	"net/http"
@@ -71,36 +70,7 @@ func (a *Users) ListSingle(w http.ResponseWriter, r *http.Request) {
 // ListAll handles GET requests and returns all current todos for a given user
 func (t *Todos) ListAll(w http.ResponseWriter, r *http.Request) {
 	t.l.Println("[DEBUG] get all records")
-
-	userID, err := auth.ExtractTokenID(r)
-	if err != nil {
-		t.l.Println("[ERROR] Something went wrong with token parsing", err)
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		utils.Respond(w, &GenericError{Message: "Something went wrong with token parsing"})
-		return
-	}
-
-	t.l.Println("[DEBUG] get record id", userID)
-
-	acc, err := t.us.GetUserByID(userID)
-
-	switch err {
-	case nil:
-
-	case models.ErrNotFound:
-		t.l.Println("[ERROR] fetching user", err)
-
-		w.WriteHeader(http.StatusNotFound)
-		utils.Respond(w, &GenericError{Message: err.Error()})
-		return
-	default:
-		t.l.Println("[ERROR] fetching user", err)
-
-		w.WriteHeader(http.StatusInternalServerError)
-		utils.Respond(w, &GenericError{Message: err.Error()})
-		return
-	}
-
+	acc, err := t.getTokenAndUser(w, r)
 	todos, err := t.ts.GetTodos(acc)
 	if err != nil {
 		// TODO: do better error checking
@@ -118,35 +88,7 @@ func (t *Todos) ListAll(w http.ResponseWriter, r *http.Request) {
 
 // ListSingle handles GET requests
 func (t *Todos) ListSingle(w http.ResponseWriter, r *http.Request) {
-	userID, err := auth.ExtractTokenID(r)
-	if err != nil {
-		t.l.Println("[ERROR] Something went wrong with token parsing", err)
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		utils.Respond(w, &GenericError{Message: "Something went wrong with token parsing"})
-		return
-	}
-
-	t.l.Println("[DEBUG] get record id", userID)
-
-	acc, err := t.us.GetUserByID(userID)
-
-	switch err {
-	case nil:
-
-	case models.ErrNotFound:
-		t.l.Println("[ERROR] fetching user", err)
-
-		w.WriteHeader(http.StatusNotFound)
-		utils.Respond(w, &GenericError{Message: err.Error()})
-		return
-	default:
-		t.l.Println("[ERROR] fetching user", err)
-
-		w.WriteHeader(http.StatusInternalServerError)
-		utils.Respond(w, &GenericError{Message: err.Error()})
-		return
-	}
-
+	acc, err := t.getTokenAndUser(w, r)
 	tid := getTodoID(r)
 	todo, err := t.ts.GetTodoByID(acc, tid)
 	switch err {

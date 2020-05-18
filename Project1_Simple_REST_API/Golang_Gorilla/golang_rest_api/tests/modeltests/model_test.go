@@ -16,9 +16,10 @@ var newdb *gorm.DB
 var pepper string
 
 func TestMain(m *testing.M)  {
+	var err error
 	cfg := utils.LoadTestConfig()
 	dbCfg := cfg.Database
-	services, err := models.NewServices(
+	services, err = models.NewServices(
 		models.WithGorm(dbCfg.Dialect(), dbCfg.ConnectionInfo()),
 		models.WithUser(cfg.Pepper),
 		models.WithTodo(),
@@ -71,7 +72,9 @@ func seedOneUser() (models.User, error) {
 	err := newdb.Model(&models.User{}).Create(&user).Error
 	if err != nil {
 		log.Fatalf("cannot seed users table: %v", err)
+		return models.User{}, err
 	}
+	log.Printf("Successfully inserted the user")
 	return user, nil
 }
 

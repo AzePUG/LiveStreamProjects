@@ -84,14 +84,14 @@ func TestUserTableColumnsLength(t *testing.T) {
 		Password: "12345",
 	}
 	err = services.User.CreateUser(&user)
-	assert.EqualErrorf(t, err, "pq: value too long for type character varying(10)",
+	assert.EqualErrorf(t, err, "pq: value too long for type character varying(15)",
 		"error message %s", err)
 
 	// LastName related case
 	user.LastName = "Sjsdaksdajsdlajdlaksjdaljdssaljdsaljdlajsljdaldjsaldjalsjdalksj"
 	user.FirstName = "Shahriyar"
 	err = services.User.CreateUser(&user)
-	assert.EqualErrorf(t, err, "pq: value too long for type character varying(15)",
+	assert.EqualErrorf(t, err, "pq: value too long for type character varying(20)",
 		"error message %s", err)
 
 	// Checking email length
@@ -104,7 +104,7 @@ func TestUserTableColumnsLength(t *testing.T) {
 	user.Email = "rzayev.sehriyar@box.az"
 	user.UserName = "asdsadasda2323423dkasdjnasdnaasd"
 	err = services.User.CreateUser(&user)
-	assert.EqualError(t, err, "pq: value too long for type character varying(8)")
+	assert.EqualError(t, err, "pq: value too long for type character varying(10)")
 
 }
 

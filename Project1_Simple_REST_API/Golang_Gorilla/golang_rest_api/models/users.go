@@ -8,10 +8,10 @@ import (
 // User will hold the user details
 type User struct {
 	gorm.Model
-	FirstName    string `json:"first_name" validate:"required,min=3,max=15" gorm:"not null"`
-	LastName     string `json:"last_name" validate:"required,min=3,max=20" gorm:"not null"`
-	UserName     string `json:"user_name" validate:"required,min=3,max=10" gorm:"not null"`
-	Email        string `json:"email" validate:"required,email" gorm:"not null;unique_index"`
+	FirstName    string `json:"first_name" validate:"required,min=3,max=15" gorm:"type:varchar(10);not null"`
+	LastName     string `json:"last_name" validate:"required,min=3,max=20" gorm:"type:varchar(15);not null"`
+	UserName     string `json:"user_name" validate:"required,min=3,max=10" gorm:"type:varchar(8);not null"`
+	Email        string `json:"email" validate:"required,email" gorm:"type:varchar(30);not null;unique_index"`
 	Password     string `json:"password" validate:"required,min=5,max=15" gorm:"-"`
 	PasswordHash string `json:"-" gorm:"not null;unique_index"`
 }
@@ -148,13 +148,12 @@ func (us *userService) bcryptPassword(user *User) error {
 	return nil
 }
 
-// Create will create provided user and backfill data
-// like the ID, CreatedAt etc.
+// AddUser will call actual db command to create the user
 func (ug *userGorm) AddUser(user *User) error {
 	return ug.db.Create(user).Error
 }
 
-// CreateUser hash password and then create database
+// CreateUser hash password and then create user
 func (us *userService) CreateUser(user *User) error {
 	err := us.bcryptPassword(user)
 	if err != nil {

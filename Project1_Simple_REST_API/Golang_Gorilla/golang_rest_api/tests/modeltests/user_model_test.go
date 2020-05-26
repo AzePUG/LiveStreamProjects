@@ -87,31 +87,80 @@ func TestUserTableColumnsLength(t *testing.T) {
 	assert.EqualErrorf(t, err, "pq: value too long for type character varying(15)",
 		"error message %s", err)
 
-	// LastName related case
+	// Cehcking LastName length
+	err = refreshUserTable()
+	if err != nil {
+		t.Fatal(err)
+	}
 	user.LastName = "Sjsdaksdajsdlajdlaksjdaljdssaljdsaljdlajsljdaldjsaldjalsjdalksj"
 	user.FirstName = "Shahriyar"
+	user.Password = "12345"
 	err = services.User.CreateUser(&user)
 	assert.EqualErrorf(t, err, "pq: value too long for type character varying(20)",
 		"error message %s", err)
 
 	// Checking email length
+	err = refreshUserTable()
+	if err != nil {
+		t.Fatal(err)
+	}
 	user.LastName = "Rzayev"
 	user.Email = "asjdhajsdjabsdjabsdjabsjdbasjbdjasbdjasdb"
+	user.Password = "12345"
 	err = services.User.CreateUser(&user)
 	assert.EqualError(t, err, "pq: value too long for type character varying(30)")
 
 	// Checking username length
+	err = refreshUserTable()
+	if err != nil {
+		t.Fatal(err)
+	}
 	user.Email = "rzayev.sehriyar@box.az"
 	user.UserName = "asdsadasda2323423dkasdjnasdnaasd"
+	user.Password = "12345"
 	err = services.User.CreateUser(&user)
 	assert.EqualError(t, err, "pq: value too long for type character varying(10)")
 
 }
 
-func TestCreateUserWithEmptyPasswordHash(t *testing.T) {
+func TestCreateUserWithEmptyPassword(t *testing.T) {
+	err := refreshUserTable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	user := models.User{
+		FirstName: "Shahriyar",
+		LastName:   "Rzayev",
+		UserName: "shako",
+		Email: "rzayev.sehriyar@gmail.com",
+		Password: "",
+	}
+	err = services.User.CreateUser(&user)
+	assert.EqualError(t, err, "models: empty password provided")
+}
+
+func TestAddUserWithEmptyPasswordHash(t *testing.T) {
 	// PasswordHash must not be empty at db level.
 	// But keep in mind that database does not care the algorithm or some kind of type of our hash.
-	return
+	err := refreshUserTable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	user := models.User{
+		FirstName: "Shahriyar",
+		LastName:   "Rzayev",
+		UserName: "shako",
+		Email: "rzayev.sehriyar@gmail.com",
+		Password: "12345",
+	}
+	err = bcryptPassword(&user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Resetting PasswordHash it should fail to add user with empty PasswordHash.
+	user.PasswordHash = ""
+	err = services.User.AddUser(&user)
+	assert.EqualError(t, err, "pq: null value in column \"password_hash\" violates not-null constraint")
 }
 
 func TestFindAllUsers(t *testing.T) {

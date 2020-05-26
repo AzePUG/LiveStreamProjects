@@ -13,7 +13,7 @@ type User struct {
 	UserName     string `json:"user_name" validate:"required,min=3,max=10" gorm:"type:varchar(10);not null"`
 	Email        string `json:"email" validate:"required,email" gorm:"type:varchar(30);not null;unique_index"`
 	Password     string `json:"password" validate:"required,min=5,max=15" gorm:"-"`
-	PasswordHash string `json:"-" gorm:"not null;unique_index"`
+	PasswordHash string `json:"-" gorm:"not null;unique_index;default:null"`
 }
 
 type Login struct {
@@ -136,7 +136,7 @@ func (ug *userGorm) UpdateUser(user *User) error {
 // Password is not the empty string
 func (us *userService) bcryptPassword(user *User) error {
 	if user.Password == "" {
-		return nil
+		return ErrPasswordEmpty
 	}
 	pwBytes := []byte(user.Password + us.pepper)
 	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)

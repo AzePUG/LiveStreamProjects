@@ -6,6 +6,8 @@ const (
 	// ErrPasswordIncorrect is returned when an invalid password
 	// is used when attempting to authenticate a user.
 	ErrPasswordIncorrect modelError = "models: incorrect password provided"
+	// ErrPasswordEmpty
+	ErrPasswordEmpty modelError = "models: empty password provided"
 )
 
 type modelError string

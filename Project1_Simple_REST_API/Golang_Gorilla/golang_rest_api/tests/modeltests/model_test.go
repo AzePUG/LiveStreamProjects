@@ -14,6 +14,15 @@ import (
 var services *models.Services
 var newdb *gorm.DB
 var pepper string
+type testError string
+
+func (e testError) Error() string {
+	return string(e)
+}
+
+const (
+	ErrPasswordEmpty testError = "testError: empty password provided"
+)
 
 func TestMain(m *testing.M)  {
 	var err error
@@ -47,7 +56,7 @@ func refreshUserTable() error {
 
 func bcryptPassword(user *models.User) error {
 	if user.Password == "" {
-		return nil
+		return ErrPasswordEmpty
 	}
 	pwBytes := []byte(user.Password + pepper)
 	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)

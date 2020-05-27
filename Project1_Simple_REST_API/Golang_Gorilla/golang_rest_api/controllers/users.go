@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"golang_restful_api/models"
+	"golang_rest_api/models"
 	"log"
 	"net/http"
 	"strconv"

@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"golang_restful_api/controllers"
-	"golang_restful_api/models"
-	"golang_restful_api/utils"
+	"golang_rest_api/controllers"
+	"golang_rest_api/models"
+	"golang_rest_api/utils"
 	"log"
 	"net/http"
 	"os"

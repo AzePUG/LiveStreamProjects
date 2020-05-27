@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"golang_restful_api/models"
+	"golang_rest_api/models"
 	"net/http"
 )
 

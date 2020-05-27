@@ -1,4 +1,4 @@
-module golang_restful_api
+module golang_rest_api
 
 go 1.14
 

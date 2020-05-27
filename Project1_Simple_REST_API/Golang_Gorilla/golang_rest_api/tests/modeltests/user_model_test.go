@@ -3,7 +3,7 @@ package modeltests
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"golang_restful_api/models"
+	"golang_rest_api/models"
 	"testing"
 )
 
@@ -161,6 +161,74 @@ func TestAddUserWithEmptyPasswordHash(t *testing.T) {
 	user.PasswordHash = ""
 	err = services.User.AddUser(&user)
 	assert.EqualError(t, err, "pq: null value in column \"password_hash\" violates not-null constraint")
+}
+
+func TestCreateUserWithEmptyEmail(t *testing.T) {
+	err := refreshUserTable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	user := models.User{
+		FirstName: "Shahriyar",
+		LastName:   "Rzayev",
+		UserName: "shako",
+		Email: "",
+		Password: "12345",
+	}
+
+	err = services.User.CreateUser(&user)
+	assert.EqualError(t, err, "pq: null value in column \"email\" violates not-null constraint")
+}
+
+func TestCreateUserWithEmptyUserName(t *testing.T) {
+	err := refreshUserTable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	user := models.User{
+		FirstName: "Shahriyar",
+		LastName:   "Rzayev",
+		UserName: "",
+		Email: "rzayev.sehriyar@gmail.com",
+		Password: "12345",
+	}
+
+	err = services.User.CreateUser(&user)
+	assert.EqualError(t, err, "pq: null value in column \"user_name\" violates not-null constraint")
+}
+
+func TestCreateUserWithEmptyFirstName(t *testing.T) {
+	err := refreshUserTable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	user := models.User{
+		FirstName: "",
+		LastName:   "Rzayev",
+		UserName: "shako",
+		Email: "rzayev.sehriyar@gmail.com",
+		Password: "12345",
+	}
+
+	err = services.User.CreateUser(&user)
+	assert.EqualError(t, err, "pq: null value in column \"first_name\" violates not-null constraint")
+}
+
+func TestCreateUserWithEmptyLastName(t *testing.T) {
+	err := refreshUserTable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	user := models.User{
+		FirstName: "Shahriyar",
+		LastName:   "",
+		UserName: "shako",
+		Email: "rzayev.sehriyar@gmail.com",
+		Password: "12345",
+	}
+
+	err = services.User.CreateUser(&user)
+	assert.EqualError(t, err, "pq: null value in column \"last_name\" violates not-null constraint")
 }
 
 func TestFindAllUsers(t *testing.T) {

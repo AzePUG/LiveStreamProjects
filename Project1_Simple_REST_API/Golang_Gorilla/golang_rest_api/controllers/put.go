@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"golang_restful_api/models"
-	"golang_restful_api/utils"
+	"golang_rest_api/models"
+	"golang_rest_api/utils"
 	"net/http"
 )
 

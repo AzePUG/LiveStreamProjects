@@ -83,6 +83,7 @@ SIMPLE_JWT = {
     'USER_ID_CLAIM': 'user_id', #value of 'user_id' would mean generated tokens include a “user_id” claim that contains the user’s identifier.
 
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',), #token_type
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type', #The claim name that is used to store a token’s type
 
     'JTI_CLAIM': 'jti', #The claim name that is used to store a token’s unique identifier.

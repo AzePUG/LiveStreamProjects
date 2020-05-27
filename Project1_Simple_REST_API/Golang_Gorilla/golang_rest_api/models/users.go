@@ -1,99 +1,175 @@
 package models
 
 import (
-	"fmt"
+	"github.com/jinzhu/gorm"
+	"golang.org/x/crypto/bcrypt"
 )
-
-//User Json request payload is as follows,
-//{
-//  "id": "1",
-//  "first_name": "james",
-//  "last_name":  "bolt",
-//  "user_name":  "james1234"
-//}
-
-// ErrUserNotFound raised when the user not found
-var ErrUserNotFound = fmt.Errorf("User not found")
 
 // User will hold the user details
 type User struct {
-	ID        int    `json:"id"`
-	FirstName string `json:"first_name" validate:"required"`
-	LastName  string `json:"last_name" validate:"required"`
-	UserName  string `json:"user_name" validate:"required"`
+	gorm.Model
+	FirstName    string `json:"first_name" validate:"required,min=3,max=15" gorm:"not null"`
+	LastName     string `json:"last_name" validate:"required,min=3,max=20" gorm:"not null"`
+	UserName     string `json:"user_name" validate:"required,min=3,max=10" gorm:"not null"`
+	Email        string `json:"email" validate:"required,email" gorm:"not null;unique_index"`
+	Password     string `json:"password" validate:"required,min=5,max=15" gorm:"-"`
+	PasswordHash string `json:"-" gorm:"not null;unique_index"`
 }
 
-// Users for list of User objects
-type Users []*User
-
-var userList = []*User{&User{}}
-
-// GetUsers function to get the reference for list of users
-func GetUsers() Users {
-	return userList
+type Login struct {
+	Email    string `json:"email" validation:"required,email"`
+	Password string `json:"password" validation:"required,min=5,max=15"`
 }
 
-func findIndexByUserID(id int) int {
-	for i, acc := range userList {
-		if acc.ID == id {
-			// If the the given id found then return the index of array
-			return i
+// UserDB interface for holding all direct database related actions
+type UserDB interface {
+	// Methods for querying users
+	GetUsers() ([]*User, error)
+	GetUserByID(id uint) (*User, error)
+	GetUserByEmail(email string) (*User, error)
+
+	// Methods for altering the user
+	UpdateUser(acc *User) error
+	AddUser(acc *User) error
+	DeleteUser(id uint) error
+}
+
+// UserDBExtra an extra actions as wrappers etc.
+type UserDBExtra interface {
+	// this will be type of userService
+	CreateUser(acc *User) error
+}
+
+// UserService ...
+type UserService interface {
+	UserDB
+	UserDBExtra
+	Authenticate(email, password string) (*User, error)
+}
+
+// NewUserService creating user service here
+func NewUserService(db *gorm.DB, pepper string) UserService {
+	ug := &userGorm{db}
+	return &userService{
+		UserDB: ug,
+		pepper: pepper,
+	}
+}
+
+var _ UserService = &userService{}
+
+type userService struct {
+	UserDB
+	pepper string
+}
+
+// Authenticate Can be used to authenticate the user with the
+// provided email address and password.
+func (us *userService) Authenticate(email, password string) (*User, error) {
+	foundUser, err := us.GetUserByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash),
+		[]byte(password+us.pepper))
+	if err != nil {
+		switch err {
+		case bcrypt.ErrMismatchedHashAndPassword:
+			return nil, ErrPasswordIncorrect
+		default:
+			return nil, err
 		}
 	}
-	// Otherwise return -1
-	return -1
+	return foundUser, nil
 }
 
-// GetUserByID returns a single user which matches the id from the
-// array/list/slice of users
-// If there is not such user with given id return ErrUserNotFound
-func GetUserByID(id int) (*User, error) {
-	i := findIndexByUserID(id)
-	if i == -1 {
-		return nil, ErrUserNotFound
-	}
-	return userList[i], nil
+var _ UserDB = &userGorm{}
+
+type userGorm struct {
+	db *gorm.DB
 }
 
-// UpdateUser replaces a user in the database with the given
-// item. Will update whole object
-// If a user with the given id does not exist in the database
-// this function returns a ErrUserNotFound error
-func UpdateUser(acc *User) error {
-	i := findIndexByUserID(acc.ID)
-	if i == -1 {
-		return ErrUserNotFound
+// first will query using the provided gorm.DB and it will get
+// the first item returned and place it into dst.
+// If nothing is found in the query, it will return ErrNotFound
+func first(db *gorm.DB, dst interface{}) error {
+	err := db.First(dst).Error
+	if err == gorm.ErrRecordNotFound {
+		return ErrNotFound
 	}
-	// update the user in the DB/array/list
-	userList[i] = acc
+	return err
+}
 
+func (ug *userGorm) GetUsers() ([]*User, error) {
+	var user []*User
+	err := ug.db.Find(&user).Error
+	return user, err
+}
+
+// GetUserByEmail Looks up a user with given email address.
+// returns that user.
+func (ug *userGorm) GetUserByEmail(email string) (*User, error) {
+	var user User
+	db := ug.db.Where("email = ?", email)
+	err := first(db, &user)
+	return &user, err
+}
+
+// GetUserByID will look up the user by the id provided.
+// 1 - user, nil
+// 2 - nil, ErrNotFound
+// 3 - nil, otherError
+func (ug *userGorm) GetUserByID(id uint) (*User, error) {
+	var user User
+	db := ug.db.Where("id = ?", id)
+	err := first(db, &user)
+	return &user, err
+}
+
+// Update the record in user table i.e given new user model
+func (ug *userGorm) UpdateUser(user *User) error {
+	return ug.db.Save(user).Error
+}
+
+// bcryptPassword will hash a user's password with a predefined
+// pepper (userPwPepper) and bcrypt if the
+// Password is not the empty string
+func (us *userService) bcryptPassword(user *User) error {
+	if user.Password == "" {
+		return nil
+	}
+	pwBytes := []byte(user.Password + us.pepper)
+	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	user.PasswordHash = string(hashedBytes)
+	user.Password = ""
 	return nil
 }
 
-// AddUser adds a new user to the database
-func AddUser(acc *User) {
-	// get the next id in sequence
-	// implement autoincrement
-	maxID := userList[len(userList)-1].ID
-	acc.ID = maxID + 1
-	userList = append(userList, acc)
+// Create will create provided user and backfill data
+// like the ID, CreatedAt etc.
+func (ug *userGorm) AddUser(user *User) error {
+	return ug.db.Create(user).Error
 }
 
-// DeleteUser deletes an user from the database/list/array/slice
-func DeleteUser(id int) error {
-	i := findIndexByUserID(id)
-	if i == -1 {
-		return ErrUserNotFound
+// CreateUser hash password and then create database
+func (us *userService) CreateUser(user *User) error {
+	err := us.bcryptPassword(user)
+	if err != nil {
+		return err
 	}
+	return us.AddUser(user)
+}
 
-	// Remove the element at index i from a.
-	userList[i] = userList[len(userList)-1] // Copy last element to index i.
-	userList[len(userList)-1] = &User{}     // Erase last element (write zero value).
-	userList = userList[:len(userList)-1]   // Truncate slice.
-
-	// log.Println(userList[:i])
-	// log.Println(userList[i+1])
-	// userList = append(userList[:i], userList[i+1])
-
+// Delete the user with provided ID
+func (ug *userGorm) DeleteUser(id uint) error {
+	user, err := ug.GetUserByID(id)
+	if err != nil {
+		return err
+	}
+	// user := User{Model: gorm.Model{ID: id}}
+	ug.db.Delete(&user)
 	return nil
 }

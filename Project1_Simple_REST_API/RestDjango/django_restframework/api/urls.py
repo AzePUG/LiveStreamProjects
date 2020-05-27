@@ -1,6 +1,8 @@
 from django.urls import  path
 from .views import  UserDetail,UserList,CreateUser, Todos, TodoOperations,Login,RefreshToken
-from rest_framework_simplejwt.views import token_refresh
+
+from .views import  UserDetail,UserList,CreateUser, Todos, TodoOperations,Login
+
 
 
 urlpatterns = [
@@ -15,5 +17,11 @@ urlpatterns = [
 
     path("login/", Login.as_view(),name="login"),
     path("token-refresh/", RefreshToken.as_view(),name="token_refresh")
+
+    path("user/todo/",Todos.as_view()),#POST ,#GET all todos
+    path("user/todo/<int:pk>/",TodoOperations.as_view()), #PUT,GET,DELETE specifc
+
+    path("login/", Login.as_view()),
+    path("token-refresh/", token_refresh)
 
 ]

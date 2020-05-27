@@ -109,6 +109,9 @@ func (ug *userGorm) GetUsers() ([]*User, error) {
 // GetUserByEmail Looks up a user with given email address.
 // returns that user.
 func (ug *userGorm) GetUserByEmail(email string) (*User, error) {
+	if email == "" {
+		return nil, ErrEmailEmpty
+	}
 	var user User
 	db := ug.db.Where("email = ?", email)
 	err := first(db, &user)

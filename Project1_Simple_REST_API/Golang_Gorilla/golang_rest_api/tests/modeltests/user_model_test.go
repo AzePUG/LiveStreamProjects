@@ -28,6 +28,27 @@ func TestIfSingleUserExists(t *testing.T) {
 	}
 }
 
+func TestIfTwoUsersExist(t *testing.T) {
+	err := refreshUserTable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = seedTwoUser()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(services)
+	users, err := services.User.GetUsers()
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	length := len(users)
+	if length != 2 {
+		t.Errorf("The length of user slice should be 2 but got %d", length)
+	}
+}
+
 func TestCreateUserWithDuplicateEmail(t *testing.T) {
 	err := refreshUserTable()
 	if err != nil {
@@ -231,6 +252,68 @@ func TestCreateUserWithEmptyLastName(t *testing.T) {
 	assert.EqualError(t, err, "pq: null value in column \"last_name\" violates not-null constraint")
 }
 
-func TestFindAllUsers(t *testing.T) {
-	return
+func TestGetUserByEmail(t *testing.T) {
+	err := refreshUserTable()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Trying to get user with empty email address
+	// It should fail with ErrEmailEmpty models error.
+	_, err = services.User.GetUserByEmail("")
+	assert.EqualError(t, err, "models: empty email address provided")
+
+	_, err = seedOneUser()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Trying to get user with non-existing email address.
+	// It should fail with ErrNotFound models error
+	_, err = services.User.GetUserByEmail("rzayev@box.az")
+	assert.EqualError(t, err, "models: resource not found")
+
+	// Trying to get user with existing email address.
+	// It should return the found user. I will check if returned user's email is equal to passed email.
+	user, err := services.User.GetUserByEmail("rzayev.sehriyar@gmail.com")
+	assert.Equal(t, "rzayev.sehriyar@gmail.com", user.Email)
+}
+
+func TestGetUserByID(t *testing.T) {
+	err := refreshUserTable()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = seedOneUser()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Trying to get user with non-existing ID
+	// Should return an ErrNotFound
+	_, err = services.User.GetUserByID(222)
+	assert.EqualError(t, err, "models: resource not found")
+
+	// Trying to get user with existing ID
+	// Should return found user from DB and I will check if ID is equal 1 or not.
+	user, err := services.User.GetUserByID(1)
+	assert.Equal(t, uint(1), user.ID)
+}
+
+func TestDeleteUser(t *testing.T) {
+	err := refreshUserTable()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = seedTwoUser()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	users, err := services.User.GetUsers()
+	assert.Equal(t,2,  len(users))
+	// TODO: need to be developed further
+
 }

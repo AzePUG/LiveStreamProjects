@@ -87,3 +87,31 @@ func seedOneUser() (models.User, error) {
 	return user, nil
 }
 
+func seedTwoUser() ([]models.User, error) {
+	users := []models.User{
+		{
+			FirstName: "Shahriyar",
+			LastName:    "Rzayev",
+			UserName: "shako",
+			Email: "rzayev.sehriyar@gmail.com",
+			Password: "12345",
+		},
+		{
+			FirstName: "Tural",
+			LastName:    "Yek",
+			UserName: "T_Yek",
+			Email: "tural_yek@gmail.com",
+			Password: "12345",
+		},
+	}
+	for _, user := range(users) {
+		bcryptPassword(&user)
+		err := newdb.Model(&models.User{}).Create(&user).Error
+		if err != nil {
+			log.Fatalf("cannot seed users table: %v", err)
+			return nil, err
+		}
+	}
+	log.Printf("Successfully inserted the users")
+	return users, nil
+}

@@ -314,6 +314,14 @@ func TestDeleteUser(t *testing.T) {
 
 	users, err := services.User.GetUsers()
 	assert.Equal(t,2,  len(users))
-	// TODO: need to be developed further
 
+	// Trying to delete user with non-existing id
+	// Expecting error here
+	err = services.User.DeleteUser(85)
+	assert.EqualError(t, err, "models: resource not found")
+
+	// Trying to delete first user.
+	// The delete function should return nil if the user is deleted successfully.
+	err = services.User.DeleteUser(1)
+	assert.Equal(t,nil, err)
 }

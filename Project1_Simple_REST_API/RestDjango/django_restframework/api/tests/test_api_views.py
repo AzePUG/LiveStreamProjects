@@ -7,7 +7,6 @@ from rest_framework.test import APIClient
 from api.models import  Todo
 from rest_framework.test import APITestCase
 from django.urls import  reverse
-
 User = get_user_model()
 
 
@@ -170,7 +169,6 @@ class TestUserViews(APITestCase):
 
         response_refresh = self.client.post(path_token_refresh,{"refresh":response_login.get("refresh")},format='json')
         
-        print("json",response_refresh.json())
 
         self.assertEqual(response.status_code, 200)
 

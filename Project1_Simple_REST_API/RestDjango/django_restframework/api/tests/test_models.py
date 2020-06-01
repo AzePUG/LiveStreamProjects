@@ -17,6 +17,8 @@
 
 # 3) Functional test is actullay testing applications from end user point view, basicly it is done by selinum,what user will type or fill gthe form
 
+#
+
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from api.models import  Todo
@@ -32,7 +34,7 @@ class TestModels(TestCase):
 
     
     def test_user_model(self):
- 
+        
         self.assertEqual(self.user.username, "testuser")
         self.assertEqual(self.user.email,"test@gmail.com")
     

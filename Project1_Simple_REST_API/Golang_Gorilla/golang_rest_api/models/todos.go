@@ -58,12 +58,11 @@ func (tg *todoGorm) GetTodoByID(user *User, id uint) (*Todo, error) {
 	var todo Todo
 	var todos []*Todo
 	db := tg.db.Model(&user).Related(&todos).Where("id = ?", id)
-	//db := tg.db.Where("id = ?", id)
 	err := first(db, &todo)
 	return &todo, err
 }
 
-// Update the record in todo table i.e given new todo model
+// Update the record in to-do table i.e given new to-do model
 func (tg *todoGorm) UpdateTodo(user *User, todo *Todo, id uint) error {
 	todos, err := tg.GetTodoByID(user, id)
 	if err != nil {
@@ -73,7 +72,7 @@ func (tg *todoGorm) UpdateTodo(user *User, todo *Todo, id uint) error {
 	return tg.db.Save(todos).Error
 }
 
-// Create will create provided todo and backfill data
+// Create will create provided to-do and back fill data
 // like the ID, CreatedAt etc.
 func (tg *todoGorm) AddTodo(todo *Todo) error {
 	return tg.db.Create(todo).Error
@@ -85,6 +84,5 @@ func (tg *todoGorm) DeleteTodo(user *User, id uint) error {
 	if err != nil {
 		return err
 	}
-	tg.db.Delete(&todo)
-	return nil
+	return tg.db.Delete(&todo).Error
 }

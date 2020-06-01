@@ -325,3 +325,26 @@ func TestDeleteUser(t *testing.T) {
 	err = services.User.DeleteUser(1)
 	assert.Equal(t,nil, err)
 }
+
+func TestUpdateUser(t *testing.T) {
+	err := refreshUserTable()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = seedOneUser()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	user, _ := services.User.GetUserByID(1)
+	user.Email = "rzayev@box.az"
+	user.UserName = "srzayev"
+
+	err = services.User.UpdateUser(user)
+	assert.Equal(t, nil, err)
+
+	user, _ = services.User.GetUserByID(1)
+	assert.Equal(t, "rzayev@box.az", user.Email)
+	assert.Equal(t, "srzayev", user.UserName)
+}

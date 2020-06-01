@@ -6,8 +6,8 @@ import (
 
 type Todo struct {
 	gorm.Model
-	Title       string `json:"title" validate:"required,min=5,max=20" gorm:"not null"`
-	Description string `json:"description" validate:"required,min=10,max=100" gorm:"not null"`
+	Title       string `json:"title" validate:"required,min=5,max=20" gorm:"type:varchar(20);not null;default:null"`
+	Description string `json:"description" validate:"required,min=10,max=100" gorm:"type:varchar(100);not null;default:null"`
 	UserID      uint   `json:"-" gorm:"not null"`
 }
 

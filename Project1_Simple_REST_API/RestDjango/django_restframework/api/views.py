@@ -192,7 +192,7 @@ class TodoOperations(APIView):
         token = request.headers.get("Authorization").split(" ")[1]
 
         details = jwt_decode_handler(token)
-
+        # print(details)
 
         if not (User.objects.filter(id=details.get("user_id")).last() and Todo.objects.filter(id=pk).last()): return Response({"message": "No such a user or todo"},status=status.HTTP_404_NOT_FOUND)  
         
@@ -212,15 +212,15 @@ class Login(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
 
         
->>>>>> master
         data = super().post(request, *args, **kwargs)
 
         data = data.data
 
+        # print(data)
         acces_token = jwt_decode_handler(data.get("access"))
         ref = jwt_decode_handler(data.get("refresh"))
-        acces_token = jwt_decode_handler(data.get("access"))
-
+        # print(ref)
+        # print(acces_token)
         if not User.objects.filter(id=acces_token.get("user_id")).last(): return Response({"error": True,"message": "No such a user"},status=status.HTTP_404_NOT_FOUND)  
         
         todos =  Todo.objects.filter(user=acces_token.get("user_id")).all()
@@ -248,4 +248,4 @@ class RefreshToken(TokenRefreshView):
         # print(ref)
         # print(acces_token)
 
-        return Response(data)
+        return data

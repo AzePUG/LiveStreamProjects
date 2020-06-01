@@ -23,7 +23,7 @@ def setup():
         "last_name":"testlastname"
         },
         "user_2":{
-            "first": "test_user",
+        "first": "test_user",
         "username":"testname",
         "password":"test12345",
         "email":"test@gmailcom",

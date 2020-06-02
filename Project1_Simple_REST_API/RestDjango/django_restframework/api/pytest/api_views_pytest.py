@@ -12,27 +12,6 @@ User = get_user_model()
 
 
 
-@pytest.fixture
-def setup():
-    data = {
-        "user":{
-        "first_name": "test_user",
-        "username":"testname",
-        "password":"test12345",
-        "email":"test@gmail.com",
-        "last_name":"testlastname"
-        },
-        "user_2":{
-        "first": "test_user",
-        "username":"testname",
-        "password":"test12345",
-        "email":"test@gmailcom",
-        "last_name":"testlastname"}
-    }
-    return data
-
-
-
             
 @pytest.mark.django_db
 def create_user_test(client,setup):
@@ -143,6 +122,7 @@ def login_test(client):
     
 
     assert response.status_code == 200
+    
     assert ['access'] ==  [k for k,v in response.data.items() if k =="access" ]
     
 
@@ -179,18 +159,6 @@ def token_refresh_test(client):
 
 
 
-@pytest.fixture
-def user_setUp(client):
-
-    user = User.objects.create_user(
-        username="test_user",
-        password="test_password",
-    )
-    path_login = reverse("login")
-
-    response = client.post(path_login,{"username":"test_user","password":"test_password"},format='json')
-    
-    return response.json()
 
 @pytest.mark.django_db
 def post_todo_test(user_setUp):

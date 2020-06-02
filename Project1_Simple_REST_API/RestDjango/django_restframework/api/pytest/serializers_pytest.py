@@ -11,31 +11,6 @@ User = get_user_model()
 
 
 
-@pytest.fixture
-def user_serlize():
-    user_data = {
-        "first_name":"TestName",
-        "last_name":"TestSurname",
-        "username":"testuser", 
-        "email":"test@gmail.com",
-        "password":"test12345"
-    }
-    
-    
-    user_serializer = UserSerializer(instance=user_data)
-    return user_serializer
-
-@pytest.fixture
-def data():
-    user_data = {
-        "first_name":"TestName",
-        "last_name":"TestSurname",
-        "username":"testuser", 
-        "email":"test@gmail.com",
-        "password":"test12345"
-    }
-    return user_data
-
 
 
 def check_test(user_serlize):

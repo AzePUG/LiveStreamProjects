@@ -1,5 +1,6 @@
 import pytest
 from django.db import models
+from django.db.utils import IntegrityError
 from django.contrib.auth import get_user_model
 from api.models import Todo
 from django.db.utils import IntegrityError
@@ -15,22 +16,8 @@ It is also possible to mark all tests in a class or module at once. This demonst
 though they overlap. Just one of these marks would have been sufficient. See t
 '''
 
-@pytest.fixture
-def created_user():
-
-    user = User.objects.create(username="testuser", email="test@gmail.com")
-    return user
 
 
-@pytest.fixture
-@pytest.mark.django_db
-def create_todo(created_user):
-    todo = Todo.objects.create(
-           user=created_user,
-           title="Test title",
-           description="Test description" 
-        )
-    return todo
 
 
 @pytest.mark.django_db

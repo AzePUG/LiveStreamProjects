@@ -11,7 +11,6 @@ User = get_user_model()
 
 
 
-
 class TestUserViews(APITestCase):
 
     def setUp(self):
@@ -40,7 +39,7 @@ class TestUserViews(APITestCase):
         response = self.client.post(path,self.user,format='json')
 
         self.assertEqual(response.status_code, 201) 
-
+    
         response_2 = self.client.post(path,self.user,format='json')
         
         self.assertEqual(response_2.status_code, 400) 

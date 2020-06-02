@@ -6,8 +6,9 @@ from django.db.utils import IntegrityError
 from django.urls import  reverse, resolve
 
 User = get_user_model()
-# You can test your Django application without using a Library but pytest offers some features that are not present in Django’s standard test mechanism: :
+#wherner we need to run some code before test we use pytets fixture
 
+# You can test your Django application without using a Library but pytest offers some features that are not present in Django’s standard test mechanism: :
 # Detailed info on failing assert statements (no need to remember self.assert* names);
 # Auto-discovery of test modules and functions;
 # Modular fixtures for managing small or parametrized long-lived test resources;

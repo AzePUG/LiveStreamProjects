@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"regexp"
 
@@ -78,27 +77,27 @@ func (g *GenHandler) MiddlewareValidate(next http.Handler) http.Handler {
 
 func (g *GenHandler) MiddlewareValidateLogin(next http.Handler, w http.ResponseWriter, r *http.Request)  {
 	login := &models.Login{}
-	fmt.Println(r.Body)
 	err := models.FromJSON(login, r.Body)
 	if err != nil {
-		g.Users.l.Println("[ERROR] deserializing user login credentials", err)
-
+		g.Users.l.Println("[ERROR] deserialize user login credentials", err)
 		w.WriteHeader(http.StatusBadRequest)
 		utils.Respond(w, &GenericError{Message: err.Error()})
 		return
 	}
+	g.Users.l.Println("Pre-Validation: ", login)
+
 
 	// validate the user
 	errs := g.Users.v.Validate(login)
 	if len(errs) != 0 {
 		g.Users.l.Println("[ERROR] validating user login credentials", errs)
-
 		// return the validation messages as an array
 		w.WriteHeader(http.StatusBadRequest)
 		utils.Respond(w, &ValidationError{Messages: errs.Errors()})
 		return
 	}
 	// Add login credentials to the context.
+	g.Users.l.Println("Post-Validation: ", login)
 	ctx := context.WithValue(r.Context(), KeyLogin{}, login)
 	r = r.WithContext(ctx)
 	// Call the next handler, which can be another middleware in the chain, or the final handler.

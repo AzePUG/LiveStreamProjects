@@ -1,0 +1,12 @@
+{
+  "port": ":8080",
+  "env": "test",
+  "pepper": "secret-random-test-string",
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "user": "restapitest",
+    "password": "12345",
+    "dbname": "restapi_test"
+  }
+}

@@ -5,7 +5,8 @@ import (
 "fmt"
 "github.com/jinzhu/gorm"
 "golang.org/x/crypto/bcrypt"
-"golang_rest_api/models"
+	"golang_rest_api/controllers"
+	"golang_rest_api/models"
 "golang_rest_api/utils"
 "log"
 "os"
@@ -15,6 +16,9 @@ import (
 var services *models.Services
 var newdb *gorm.DB
 var pepper string
+var ah  *controllers.Users
+var th  *controllers.Todos
+var gh controllers.GenHandler
 type testError string
 
 func (e testError) Error() string {
@@ -39,6 +43,21 @@ func TestMain(m *testing.M)  {
 	}
 	newdb = services.DB()
 	pepper = cfg.Pepper
+
+	l := log.New(os.Stdout, "users-api -> ", log.LstdFlags)
+	v := models.NewValidation()
+	us := services.User
+
+	l_todo := log.New(os.Stdout, "todos-api -> ", log.LstdFlags)
+	ts := services.Todo
+	// create the handler/conrollers
+	ah = controllers.NewUsers(l, v, us)
+	th = controllers.NewTodos(l_todo, v, ts, us)
+	gh = controllers.GenHandler{
+		ah,
+		th,
+	}
+
 	os.Exit(m.Run())
 }
 

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"golang_rest_api/auth"
 	"golang_rest_api/models"
 	"golang_rest_api/utils"
@@ -11,7 +10,6 @@ import (
 type KeyLogin struct{}
 
 func (us *Users) Login(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Inside Login handler")
 	login := r.Context().Value(KeyLogin{}).(*models.Login)
 	foundUser, err := us.us.Authenticate(login.Email, login.Password)
 	if err != nil {

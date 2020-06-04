@@ -54,7 +54,7 @@ func refreshUserTable() error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Successfully refreshed table")
+	log.Printf("Successfully refreshed user table")
 	return nil
 }
 
@@ -68,7 +68,7 @@ func refreshTodoTable() error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Successfully refreshed table")
+	log.Printf("Successfully refreshed todo table")
 	return nil
 }
 

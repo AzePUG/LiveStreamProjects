@@ -87,7 +87,7 @@ SIMPLE_JWT = {
     'TOKEN_TYPE_CLAIM': 'token_type', #The claim name that is used to store a token’s type
 
     'JTI_CLAIM': 'jti', #The claim name that is used to store a token’s unique identifier.
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  #which specifies how long access tokens are valid
+    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=3),  #which specifies how long access tokens are valid
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1), # how long refresh tokens are valid.
 }
 

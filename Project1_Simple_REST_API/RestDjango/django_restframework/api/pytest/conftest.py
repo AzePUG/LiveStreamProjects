@@ -17,6 +17,8 @@ User = get_user_model()
 
 #wherner we need to run some code before test we use pytets fixture
 
+# A number of third-party testing frameworks attempt to address some of the issues with unittest, and pytest has proven to be one of the most popular. pytest is a feature-rich, plugin-based ecosystem for testing your Python code.
+
 @pytest.fixture
 def created_user():
 

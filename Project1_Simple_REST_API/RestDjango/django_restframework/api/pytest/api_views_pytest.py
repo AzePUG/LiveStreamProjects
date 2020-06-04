@@ -8,6 +8,7 @@ from api.models import  Todo
 from rest_framework.test import APITestCase
 from django.urls import  reverse
 import  pytest
+import time
 User = get_user_model()
 
 
@@ -110,7 +111,9 @@ def user_detail_test(client):
 
  
 @pytest.mark.django_db
-def login_test(client):
+def login_test():
+    client = APIClient()
+
     user = User.objects.create_user(
         username="test_user",
         password="test_password",
@@ -127,6 +130,57 @@ def login_test(client):
     
 
     assert ['refresh'] == [k for k,v in response.data.items() if k =="refresh" ]
+
+    time.sleep(5)
+
+    todo_path = reverse("user_todo")
+
+    data = {
+        "title": "Test Title",
+        "description": "Test description"
+    }
+
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {response.get('access')}")
+
+    res =  client.post(todo_path,data,format='json')
+
+
+    assert res.status_code == 401
+
+    assert res.json().get("detail") ==  "Given token not valid for any token type"
+    assert res.json().get("messages") ==  [{'message': 'Token is invalid or expired', 'token_class': 'AccessToken', 'token_type': 'access'}]
+
+    refresh_path = reverse("token_refresh")
+
+
+    response_refresh = client.post(refresh_path,{"refresh":response.json().get("refresh")},format='json')
+
+    assert response_refresh.status_code == 200
+
+
+    data = {
+        "title": "Test Title",
+        "description": "Test description"
+    }
+
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {response_refresh.json().get('access')}")
+
+    response_after_Refresh =  client.post(todo_path,data,format='json')
+
+    assert response_after_Refresh.status_code == 201
+
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {response_refresh.json().get('refresh')}")
+
+    another_Request =  client.post(todo_path,data,format='json')
+
+    assert another_Request.status_code == 401
+
+    assert another_Request.json().get("detail") ==  "Given token not valid for any token type"
+    assert another_Request.json().get("code") ==  "token_not_valid"
+    assert another_Request.json().get("messages") ==  [{'token_class': 'AccessToken', 'token_type': 'access', 'message': 'Token has wrong type'}]
+
+
+
 
 @pytest.mark.django_db
 def missingfields_test(client):

@@ -58,3 +58,46 @@ func TestLoginWithValidationPassWrongJSONFormat(t *testing.T) {
 		assert.Equal(t, w.Code, v.statusCode)
 	}
 }
+
+func TestLoginWithValidationEmptyInvalidEmail(t *testing.T) {
+	err := refreshUserTable()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = seedOneUser()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	samples := []struct {
+		inputJSON    string
+		statusCode   int
+	}{
+		{
+			// wrong email format
+			inputJSON:    `{"email": "rzayevsehriyargmailcom", "password": "12345"}`,
+			statusCode:   400,
+		},
+		{
+			// empty email address
+			inputJSON:    `{"email": "", "password": 12345"}`,
+			statusCode:   400,
+		},
+
+	}
+
+	w := httptest.NewRecorder()
+	r := mux.NewRouter()
+	r.Use(controllers.CommonMiddleware)
+	var apiV1 = r.PathPrefix("/api/v1/").Subrouter()
+	postR := apiV1.Methods("POST").Subrouter()
+	postR.HandleFunc("/users/login", ah.Login)
+	postR.Use(gh.MiddlewareValidate)
+
+	for _, v := range samples {
+		req := httptest.NewRequest("POST", "/api/v1/users/login", bytes.NewBufferString(v.inputJSON))
+		r.ServeHTTP(w, req)
+		assert.Equal(t, w.Code, v.statusCode)
+	}
+}

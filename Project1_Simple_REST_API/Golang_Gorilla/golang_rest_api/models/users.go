@@ -17,8 +17,8 @@ type User struct {
 }
 
 type Login struct {
-	Email    string `json:"email" validation:"required,email"`
-	Password string `json:"password" validation:"required,min=5,max=15"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=5,max=15"`
 }
 
 // UserDB interface for holding all direct database related actions

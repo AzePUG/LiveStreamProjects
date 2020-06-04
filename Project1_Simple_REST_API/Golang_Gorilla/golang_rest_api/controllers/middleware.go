@@ -84,6 +84,8 @@ func (g *GenHandler) MiddlewareValidateLogin(next http.Handler, w http.ResponseW
 		utils.Respond(w, &GenericError{Message: err.Error()})
 		return
 	}
+	g.Users.l.Println(login)
+
 	// validate the user
 	errs := g.Users.v.Validate(login)
 	if len(errs) != 0 {

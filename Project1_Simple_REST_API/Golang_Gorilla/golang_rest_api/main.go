@@ -28,8 +28,9 @@ func main() {
 	must(err)
 
 	defer services.Close()
-	//services.DestructiveReset()
-	//services.AutoMigrate()
+	services.DestructiveReset()
+	services.AutoMigrateUser()
+	services.AutoMigrateTodo()
 
 	l := log.New(os.Stdout, "users-api -> ", log.LstdFlags)
 	v := models.NewValidation()

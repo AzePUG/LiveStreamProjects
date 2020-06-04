@@ -1,35 +1,11 @@
 import pytest
-from app.models import Users
-from app_init.app_factory import create_app
+from app.models import Users, Todo
+from app.app import app as flask_app
 from extensions.extension import db
-from app.serializer import UserSchema
+from app.serializer import UserSchema, TodoSchema
 from sqlalchemy.engine import reflection
 from sqlalchemy import MetaData, Table, ForeignKeyConstraint
 from sqlalchemy.schema import DropConstraint, DropTable
-
-
-def remove_foreign_keys(db):
-
-    inspector = reflection.Inspector.from_engine(db.engine)
-    fake_metadata = MetaData()
-
-    fake_tables = []
-    all_fks = []
-
-    for table_name in db.metadata.tables:
-        fks = []
-        for fk in inspector.get_foreign_keys(table_name):
-            if fk["name"]:
-                fks.append(ForeignKeyConstraint((), (), name=fk["name"]))
-        t = Table(table_name, fake_metadata, *fks)
-        fake_tables.append(t)
-        all_fks.extend(fks)
-
-    connection = db.engine.connect()
-    transaction = connection.begin()
-    for fkc in all_fks:
-        connection.execute(DropConstraint(fkc))
-    transaction.commit()
 
 
 def db_DropEverything(db):
@@ -37,19 +13,14 @@ def db_DropEverything(db):
 
     conn = db.engine.connect()
 
-    # the transaction only applies if the DB supports
-    # transactional DDL, i.e. Postgresql, MS SQL Server
-    trans = conn.begin()
+    transactional = conn.begin()
 
     inspector = reflection.Inspector.from_engine(db.engine)
 
-    # gather all data first before dropping anything.
-    # some DBs lock after things have been dropped in
-    # a transaction.
     metadata = MetaData()
 
-    tbs = []
-    all_fks = []
+    tables = []
+    all_foreign_keys = []
 
     for table_name in inspector.get_table_names():
         fks = []
@@ -58,16 +29,16 @@ def db_DropEverything(db):
                 continue
             fks.append(ForeignKeyConstraint((), (), name=fk["name"]))
         t = Table(table_name, metadata, *fks)
-        tbs.append(t)
-        all_fks.extend(fks)
+        tables.append(t)
+        all_foreign_keys.extend(fks)
 
-    for fkc in all_fks:
-        conn.execute(DropConstraint(fkc))
+    for foreignkey in all_foreign_keys:
+        conn.execute(DropConstraint(foreignkey))
 
-    for table in tbs:
+    for table in tables:
         conn.execute(DropTable(table))
 
-    trans.commit()
+    transactional.commit()
 
 
 @pytest.fixture()
@@ -84,54 +55,140 @@ def new_user():
 
 
 @pytest.fixture()
-def client():
-    app = create_app("test")
+def client(app):
+
     test_client = app.test_client()
-    ctx = app.app_context()
-    ctx.push()
     yield test_client
 
-    ctx.pop()
+
+@pytest.fixture
+def app():
+    yield flask_app
 
 
 @pytest.fixture()
-def flask_app():
-    app = create_app("test")
-    ctx = app.app_context()
-    ctx.push()
-    yield app
+def init_db_users(app):
+    db.create_all()
+    users = [
+        {
+            "first_name": "Shehriyar",
+            "last_name": "Rzayev",
+            "user_name": "shako",
+            "email": "test1@mail.ru",
+            "password": "Test12345",
+        },
+        {
+            "first_name": "Sebuhi",
+            "last_name": "Shukurov",
+            "user_name": "sebuhi_sh",
+            "email": "test2@mail.ru",
+            "password": "Test12345",
+        },
+    ]
+    print(users)
+    user = UserSchema().load(users[0])
+    user1 = UserSchema().load(users[1])
 
-    ctx.pop()
+    db.session.add(user)
+    db.session.add(user1)
+    db.session.commit()
+
+    yield db
+    db.close_all_sessions()
+    db_DropEverything(db)
 
 
 @pytest.fixture()
-def init_db(flask_app):
-    with flask_app.app_context():
-        db.create_all()
-        users = [
-            {
-                "first_name": "Shehriyar",
-                "last_name": "Rzayev",
-                "user_name": "shako",
-                "email": "test1@mail.ru",
-                "password": "Test12345",
-            },
-            {
-                "first_name": "Sebuhi",
-                "last_name": "Shukurov",
-                "user_name": "sebuhi_sh",
-                "email": "test2@mail.ru",
-                "password": "Test12345",
-            },
-        ]
+def invalid_data():
+    invalid_data1 = {
+        "testdata": "testvalue",
+        "first_name": "NewName",
+        "last_name": "NewLastname",
+        "user_name": "Test_name",
+        "email": "newmail2@mail.ru",
+        "password": "newPass12345",
+    }
 
-        user = UserSchema().load(users[0])
-        user1 = UserSchema().load(users[1])
+    invalid_data2 = {
+        "last_name": "NewLastname",
+        "email": "newmail2@mail.ru",
+        "password": "newPass12345",
+    }
 
-        db.session.add(user)
-        db.session.add(user1)
-        db.session.commit()
+    invalid_data3 = {
+        "first_name": "N",
+        "user_name": "Test_name",
+        "last_name": "New",
+        "email": "newmail2@mail.ru",
+        "password": "newPass12345",
+    }
 
-        yield db
-        db_DropEverything(db)
-        # db.drop_all()
+    yield [invalid_data1, invalid_data2, invalid_data3]
+
+
+@pytest.fixture()
+def init_db_todos(app):
+    db.create_all()
+    users = [
+        {
+            "first_name": "Shehriyar",
+            "last_name": "Rzayev",
+            "user_name": "shako",
+            "email": "test1@mail.ru",
+            "password": "Test12345",
+        },
+        {
+            "first_name": "Sebuhi",
+            "last_name": "Shukurov",
+            "user_name": "sebuhi_sh",
+            "email": "test2@mail.ru",
+            "password": "Test12345",
+        },
+    ]
+
+    user = UserSchema().load(users[0])
+    user1 = UserSchema().load(users[1])
+
+    db.session.add(user)
+    db.session.add(user1)
+    db.session.commit()
+
+    todos = [
+        {
+            "title": "Python",
+            "description": "Learn Python with TechAcademy",
+            "user_id": user.id,
+        },
+        {"title": "Python", "description": "Learn Python", "user_id": user1.id},
+    ]
+
+    todo = TodoSchema().load(todos[0])
+    todo1 = TodoSchema().load(todos[1])
+
+    db.session.add(todo)
+    db.session.add(todo1)
+    db.session.commit()
+
+    yield db
+    db.close_all_sessions()
+
+    db_DropEverything(db)
+
+
+@pytest.fixture()
+def invalid_data_todos():
+
+    invalid_data1 = {
+        "title": "Python",
+        "user_id": 1,
+    }
+
+    invalid_data2 = {"title": "Python"}
+
+    invalid_data3 = {
+        "title": "Python",
+        "description": "Learn Python",
+        "test": "testvalue",
+    }
+
+    yield [invalid_data1, invalid_data2, invalid_data3]

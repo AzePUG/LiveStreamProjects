@@ -32,6 +32,7 @@ def create_user_test(client,setup):
     assert user.first_name == "test_user"
     assert user.username == "testname"
     assert user.email == "test@gmail.com"
+    
 
 @pytest.mark.django_db
 def user_list_test(client):

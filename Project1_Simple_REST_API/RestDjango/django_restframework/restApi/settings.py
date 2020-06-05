@@ -82,11 +82,12 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'id', #The database field from the user model that will be included in generated tokens to identify users.
     'USER_ID_CLAIM': 'user_id', #value of 'user_id' would mean generated tokens include a “user_id” claim that contains the user’s identifier.
 
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',), #token_type
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type', #The claim name that is used to store a token’s type
 
     'JTI_CLAIM': 'jti', #The claim name that is used to store a token’s unique identifier.
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  #which specifies how long access tokens are valid
+    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=3),  #which specifies how long access tokens are valid
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1), # how long refresh tokens are valid.
 }
 
@@ -99,6 +100,12 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'TEST_REQUEST_RENDERER_CLASSES': [
+        'rest_framework.renderers.MultiPartRenderer',
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.TemplateHTMLRenderer'
+    ]
 }
 
 '''

@@ -9,6 +9,7 @@ license = "MIT"
 python = "^3.9"
 img2pdf = ">=0.4.4"
 Pillow = ">=9.1.0"
+flask = ">=2.1.2"
 
 [tool.poetry.dev-dependencies]
 pytest = ">=7.1.2"

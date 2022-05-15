@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from src.domain import validators
 
+
 @dataclass
 class JPG:
     src_path: str
@@ -13,11 +14,11 @@ class PDF:
     extension: str = field(init=False, default=".pdf")
 
 
+@validators.is_jpeg
 def allocate_jpeg(src_path: str) -> JPG:
-    if validators.is_jpeg(src_path):
-        return JPG(src_path=src_path)
+    return JPG(src_path=src_path)
 
 
+@validators.is_pdf
 def allocate_pdf(dest_path: str) -> PDF:
-    if validators.is_pdf(dest_path):
-        return PDF(dest_path=dest_path)
+    return PDF(dest_path=dest_path)

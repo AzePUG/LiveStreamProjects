@@ -1,5 +1,6 @@
 import pytest
 from src.domain import model
+from src.domain.exceptions import WrongFileExtensionModelException
 
 
 def test_if_can_create_jpg():
@@ -33,3 +34,16 @@ def test_if_can_allocate_jpeg():
 def test_if_can_allocate_pdf():
     pdf = model.PDF(dest_path="fake.pdf")
     assert model.allocate_pdf(dest_path="fake.pdf") == pdf
+
+
+def test_if_can_allocate_with_wrong_extension_pdf():
+    with pytest.raises(WrongFileExtensionModelException) as err:
+        model.allocate_pdf(dest_path="wrong_format.txt")
+    assert str(err.value) == "Wrong file extension: expected .pdf"
+
+
+def test_if_can_allocate_with_wrong_extension_jpg():
+    with pytest.raises(WrongFileExtensionModelException) as err:
+        model.allocate_jpeg(src_path="wrong_format.txt")
+    assert str(err.value) == "Wrong file extension: expected .jpeg or .jpg"
+

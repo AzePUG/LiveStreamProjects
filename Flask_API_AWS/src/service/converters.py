@@ -1,4 +1,5 @@
 import img2pdf
+import uuid
 from PIL import Image
 from src.domain import model
 from src.service.validators import is_valid_jpg_path, is_valid_pdf_path
@@ -24,8 +25,8 @@ def _convert_to_pdf(image) -> bytes:
 
 
 def _get_jpg_pdf(jpg_path, pdf_path) -> tuple[model.JPG, model.PDF]:
-    jpg = model.allocate_jpeg(src_path=jpg_path)
-    pdf = model.allocate_pdf(dest_path=pdf_path)
+    jpg = model.allocate_jpeg(code=uuid.uuid4(), src_path=jpg_path)
+    pdf = model.allocate_pdf(code=uuid.uuid4(), dest_path=pdf_path)
     return jpg, pdf
 
 

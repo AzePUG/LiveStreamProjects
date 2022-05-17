@@ -1,3 +1,4 @@
+import dataclasses
 import uuid
 from dataclasses import dataclass, field
 from src.domain import validators
@@ -9,12 +10,26 @@ class JPG:
     src_path: str
     extensions: tuple[str, str] = field(init=False, default=(".jpeg", ".jpg"))
 
+    @classmethod
+    def from_dict(cls, dict_):
+        return cls(**dict_)
+
+    def to_dict(self):
+        return dataclasses.asdict(self)
+
 
 @dataclass
 class PDF:
     code: uuid.UUID
     dest_path: str
     extension: str = field(init=False, default=".pdf")
+
+    @classmethod
+    def from_dict(cls, dict_):
+        return cls(**dict_)
+
+    def to_dict(self):
+        return dataclasses.asdict(self)
 
 
 @validators.is_jpeg

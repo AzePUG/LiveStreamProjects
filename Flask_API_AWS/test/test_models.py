@@ -47,3 +47,46 @@ def test_if_can_allocate_with_wrong_extension_jpg(get_uuid):
         model.allocate_jpeg(get_uuid, src_path="wrong_format.txt")
     assert str(err.value) == "Wrong file extension: expected .jpeg or .jpg"
 
+
+def test_jpg_model_from_dict(get_uuid):
+    init_dict = {
+        "code": get_uuid,
+        "src_path": "fake.jpg"
+    }
+
+    pdf = model.JPG.from_dict(init_dict)
+    assert pdf.code == get_uuid
+    assert pdf.src_path == "fake.jpg"
+
+
+def test_pdf_model_from_dict(get_uuid):
+    init_dict = {
+        "code": get_uuid,
+        "dest_path": "fake.pdf"
+    }
+
+    pdf = model.PDF.from_dict(init_dict)
+    assert pdf.code == get_uuid
+    assert pdf.dest_path == "fake.pdf"
+
+
+def test_jpg_model_to_dict(get_uuid):
+    init_dict = {
+        "code": get_uuid,
+        "src_path": "fake.jpg"
+    }
+
+    jpg = model.JPG.from_dict(init_dict)
+    init_dict["extensions"] = jpg.extensions
+    assert jpg.to_dict() == init_dict
+
+
+def test_pdf_model_to_dict(get_uuid):
+    init_dict = {
+        "code": get_uuid,
+        "dest_path": "fake.pdf"
+    }
+
+    pdf = model.PDF.from_dict(init_dict)
+    init_dict["extension"] = pdf.extension
+    assert pdf.to_dict() == init_dict

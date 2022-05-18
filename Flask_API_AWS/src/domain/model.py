@@ -37,7 +37,14 @@ class PDF:
 class Converted:
     converted_from: JPG
     converted_to: PDF
-    converted_at: datetime.datetime = field(init=False, default_factory=datetime.datetime.now)
+    converted_at: datetime.datetime
+
+    @classmethod
+    def from_dict(cls, dict_):
+        return cls(**dict_)
+
+    def to_dict(self):
+        return dataclasses.asdict(self)
 
 
 @validators.is_jpeg

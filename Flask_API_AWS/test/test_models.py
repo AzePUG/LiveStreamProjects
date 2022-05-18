@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 from src.domain import model
 from src.domain.exceptions import WrongFileExtensionModelException
@@ -95,6 +97,6 @@ def test_pdf_model_to_dict(get_uuid):
 def test_if_converted_model_created(get_uuid):
     jpg = model.JPG(code=get_uuid, src_path="fake.jpg")
     pdf = model.PDF(code=get_uuid, dest_path="fake.pdf")
-    converted = model.Converted(converted_from=jpg, converted_to=pdf)
+    converted = model.Converted(converted_from=jpg, converted_to=pdf, converted_at=datetime.datetime.now())
     assert converted.converted_to.code == get_uuid
     assert converted.converted_from.code == get_uuid

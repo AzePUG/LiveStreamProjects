@@ -1,3 +1,5 @@
+import datetime
+
 import img2pdf
 import uuid
 from PIL import Image
@@ -12,7 +14,7 @@ def jpg2pdf(jpg_path: str, pdf_path: str) -> Optional[model.Converted]:
     jpg, pdf = _get_jpg_pdf(jpg_path, pdf_path)
     with _open_jpg(jpg.src_path) as image:
         _convert_and_save_pdf(image, pdf)
-        return model.Converted(converted_from=jpg, converted_to=pdf)
+        return model.Converted(converted_from=jpg, converted_to=pdf, converted_at=datetime.datetime.now())
 
 
 def _convert_and_save_pdf(image, pdf) -> None:

@@ -35,3 +35,11 @@ def test_with_wrong_format():
     with pytest.raises(WrongFileExtensionModelException) as err:
         converters.jpg2pdf(jpg_path, pdf_path)
     assert str(err.value) == "Wrong file extension: expected .jpeg or .jpg"
+
+
+def test_if_converted_returned():
+    jpg_path = os.path.abspath("test/data/AzePUG.jpg")
+    pdf_path = os.path.abspath("test/data/AzePUG.pdf")
+    converted = converters.jpg2pdf(jpg_path, pdf_path)
+    assert converted.converted_from.src_path == jpg_path
+    assert converted.converted_to.dest_path == pdf_path

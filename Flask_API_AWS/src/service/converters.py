@@ -4,14 +4,15 @@ from PIL import Image
 from src.domain import model
 from src.service.validators import is_valid_jpg_path, is_valid_pdf_path
 from contextlib import contextmanager
-from typing import Generator
+from typing import Generator, Optional
 
 
 @is_valid_jpg_path
-def jpg2pdf(jpg_path: str, pdf_path: str) -> None:
+def jpg2pdf(jpg_path: str, pdf_path: str) -> Optional[model.Converted]:
     jpg, pdf = _get_jpg_pdf(jpg_path, pdf_path)
     with _open_jpg(jpg.src_path) as image:
         _convert_and_save_pdf(image, pdf)
+        return model.Converted(converted_from=jpg, converted_to=pdf)
 
 
 def _convert_and_save_pdf(image, pdf) -> None:

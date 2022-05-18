@@ -1,4 +1,5 @@
 import dataclasses
+import datetime
 import uuid
 from dataclasses import dataclass, field
 from src.domain import validators
@@ -30,6 +31,13 @@ class PDF:
 
     def to_dict(self):
         return dataclasses.asdict(self)
+
+
+@dataclass
+class Converted:
+    converted_from: JPG
+    converted_to: PDF
+    converted_at: datetime.datetime = field(init=False, default_factory=datetime.datetime.now)
 
 
 @validators.is_jpeg

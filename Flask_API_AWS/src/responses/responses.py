@@ -37,7 +37,7 @@ def build_response_from_invalid_request(invalid_request):
     message = "\n".join(
         [
             f"{err['parameter']}: {err['message']}"
-            for err in invalid_request.errros
+            for err in invalid_request.errors
         ]
     )
 

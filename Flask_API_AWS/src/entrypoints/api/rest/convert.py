@@ -5,11 +5,20 @@ import datetime
 from flask import Blueprint, Response
 
 from src.repository.memrepo import MemRepo
+from src.requests.converted_list import build_converted_list_request
 from src.serializers.model import ConvertedJsonEncoder
 from src.use_cases.converted_list import converted_list_use_case
 from src.domain import model
+from src.responses.responses import ResponseTypes
 
 blueprint = Blueprint("convert", __name__)
+
+STATUS_CODES = {
+    ResponseTypes.SUCCESS: 200,
+    ResponseTypes.RESOURCE_ERROR: 404,
+    ResponseTypes.PARAMETERS_ERROR: 400,
+    ResponseTypes.SYSTEM_ERROR: 500,
+}
 
 
 def _get_converted_list():
@@ -41,11 +50,12 @@ def _get_converted_list():
 
 @blueprint.route("/converteds", methods=["GET"])
 def room_list():
+    request_object = build_converted_list_request()
     repo = MemRepo(_get_converted_list())
-    result = converted_list_use_case(repo)
+    response = converted_list_use_case(repo, request_object)
     return Response(
-        json.dumps(result, cls=ConvertedJsonEncoder),
+        json.dumps(response.value, cls=ConvertedJsonEncoder),
         mimetype="application/json",
-        status=200
+        status=STATUS_CODES[response.type]
     )
 
